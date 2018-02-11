@@ -1,0 +1,364 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+
+}
+<script src="//cdn.jsdelivr.net/npm/sortablejs@1.7.0/Sortable.min.js"></script>
+@*<script src="//cdnjs.cloudflare.com/ajax/libs/Vue.Draggable/2.16.0/vuedraggable.min.js"></script>*@
+<script src="~/Content/js/draggable.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="~/Content/js/fabric.min.js"></script>
+<style>
+    #FabricLayout, #FabricLayout > div {
+        height: 90%;
+        min-height: 650px;
+    }
+
+    #hiddenLayer span {
+        font-family: Glyphicons Halflings
+    }
+
+    .form-group > label.control-label {
+        text-align: left;
+    }
+</style>
+<div id="hiddenLayer" style="display:none">
+    <span id="water">&#xe064;</span>
+    <span id="electric"> &#xe162;</span>
+    <span id="gas"> &#xe104;</span>
+    <span id="concentrator"> &#xe219;</span>
+</div>
+<div id="FabricLayout" class="row">
+    <h2 class="text-center">组态设计界面</h2>
+    <div class="col-sm-2">
+        <div id="list" class="list-group">
+            <a href="#" class="list-group-item" v-for="el in elements"
+               v-bind:data-deviceType="el.deviceType"
+               v-bind:data-type="el.type">
+                <i :class="el.icon"></i> {{el.name}}
+            </a>
+        </div>
+    </div>
+    <div class="col-sm-7 table-bordered">
+        <ul class="nav nav-tabs">
+            <li v-for="(tab,index) in tabs.layer" :class="{active:index==newIndex.layer}" @@click="layerToggle(index)">
+                <a href="#">{{tab}}</a>
+            </li>
+        </ul>
+        <div class="tab-content body-content">
+            <div class="tab-pane" :class="{active:index==newIndex.layer}" v-for="(tc,index) in tabContents.layer">
+                <transition>
+                    <keep-alive>
+                        <component :is="tc"></component>
+                    </keep-alive>
+                </transition>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <ul class="nav nav-tabs">
+            <li v-for="(tab,index) in tabs.attributer" :class="{active:index==newIndex.attributer}" @@click="attributerToggle(index)">
+                <a href="#">{{tab}}</a>
+            </li>
+        </ul>
+        <div class="tab-content body-content" style="padding-top:10px;">
+            <div class="tab-pane" :class="{active:index==newIndex.attributer}" v-for="(tc,index) in tabs.attributer">
+                <div v-if="tc=='布局'" class="form-horizontal">
+                    <div class="form-group form-group-sm">
+                        <label class="col-sm-3 control-label">x:</label>
+                        <div class="col-sm-9">
+                            <input type="number" class="form-control" v-model="layout.left">
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <label for="inputPassword" class="col-sm-3 control-label">y:</label>
+                        <div class="col-sm-9">
+                            <input type="number" class="form-control" v-model="layout.top">
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <label for="inputPassword" class="col-sm-3 control-label">宽度:</label>
+                        <div class="col-sm-9">
+                            <input type="number" class="form-control" v-model="layout.width">
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <label for="inputPassword" class="col-sm-3 control-label">高度:</label>
+                        <div class="col-sm-9">
+                            <input type="number" class="form-control" v-model="layout.height">
+                        </div>
+                    </div>
+                </div>
+                <div v-else-if="tc=='属性'" class="form-horizontal">
+                    <div class="form-group form-group-sm">
+                        <label class="col-sm-3 control-label">Email</label>
+                        <div class="col-sm-9">
+                            <p class="form-control-static">email@example.com</p>
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <label for="inputPassword" class="col-sm-3 control-label">Password</label>
+                        <div class="col-sm-9">
+                            <input type="password" class="form-control" placeholder="Password">
+                        </div>
+                    </div>
+                </div>
+                <div v-else-if="tc=='事件'" class="form-horizontal">
+                    <div class="form-group form-group-sm">
+                        <label class="col-sm-3 control-label">Email</label>
+                        <div class="col-sm-9">
+                            <p class="form-control-static">email@example.com</p>
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <label for="inputPassword" class="col-sm-3 control-label">Password</label>
+                        <div class="col-sm-9">
+                            <input type="password" class="form-control" placeholder="Password">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/Components/designDevice.js"></script>
+<script>
+    (function () {
+        var a = new Vue({
+            el: "#FabricLayout",
+            data: {
+                loggedEvent: "",
+                elements: [
+                    { "type": "line", "name": "连接线", "deviceType": "line", "icon": "glyphicon glyphicon-minus" },
+                    { "type": "Text", "name": "文本", "deviceType": "Text", "icon": "glyphicon glyphicon-text-size" },
+                    { "type": "image", "name": "水表", "deviceType": "water", "icon": "glyphicon glyphicon-tint" },
+                    { "type": "image", "name": "电表", "deviceType": "electric", "icon": "glyphicon glyphicon-flash" },
+                    { "type": "image", "name": "汽表", "deviceType": "gas", "icon": "glyphicon glyphicon-fire" },
+                    { "type": "image", "name": "集中器", "deviceType": "concentrator", "icon": "glyphicon glyphicon-bed" },
+                ],
+                tabs: {
+                    layer: ["组态设计", "预览"],
+                    attributer: ["布局", '属性', '事件']
+                },
+                newIndex: {
+                    layer: 0,
+                    attributer: 0
+                },
+                tabContents: {
+                    layer: ["desginDevice", "preview"]
+                },
+                canvas: {
+                    desginDevice: null,
+                    //desginFlow: null,
+                    preview: null
+                },
+                layout: {
+                    left: 0,
+                    top: 0,
+                    width: 10,
+                    height: 10,
+
+                },
+                attr: {
+
+                },
+                events: []
+            },
+            mounted() {
+                var _this = this; var cId = _this.tabContents.layer[_this.newIndex.layer];
+                var currentCanvas = document.getElementById(cId);
+                _this.canvas[cId] = new fabric.Canvas(cId)
+                /*
+                第一次加载设计界面
+                */
+                sortable(document.getElementById('list'), function (item, evt) {
+                    var startPoint = _this.isInCanvas(evt, currentCanvas);
+                    if (startPoint) {
+                        _this.createDevice(item.dataset.devicetype, item.dataset.type, startPoint);
+                    }
+                });
+                _this.registerMethods();
+            },
+            methods: {
+                layerToggle(index) {
+                    var _this = this;
+                    _this.newIndex.layer = index;
+                    var cId = _this.tabContents.layer[_this.newIndex.layer];
+                    if (!_this.canvas[cId]) {
+                        _this.canvas[cId] = new fabric.Canvas(cId)
+                    }
+                },
+                attributerToggle(index) {
+                    this.newIndex.attributer = index;
+                },
+                isInCanvas(evt, toElements) {//判断是否在相应的元素内
+                    var startPoint;
+                    if (toElements && evt && toElements.getBoundingClientRect()) {
+                        ePosition = toElements.getBoundingClientRect();
+                        if ((evt.clientX > ePosition.left && evt.clientX < ePosition.left + toElements.offsetWidth)
+                            && (evt.clientY > ePosition.top && evt.clientY < ePosition.top + toElements.offsetHeight)) {
+                            startPoint = { x: 0, y: 0 };
+                            startPoint.x = evt.clientX - ePosition.left;
+                            startPoint.y = evt.clientY - ePosition.top;
+                        }
+                    }
+                    return startPoint;
+                },
+                createDevice(deviceType, type, startPoint) {
+                    var _this = this;
+                    var tempDev;
+                    switch (type) {
+                        case 'line':
+                            tempDev = _this.createLine(startPoint);
+
+                            break;
+                        case 'Text':
+                            tempDev = _this.createText(startPoint);
+                            break;
+                        case 'image':
+                            tempDev = _this.createImage(startPoint, deviceType);
+                            break;
+                        default:
+                    }
+                    _this.canvas[_this.tabContents.layer[_this.newIndex.layer]].add(tempDev);
+                    tempDev.on('selected', function (a) {
+                        console.log("selected a object");
+                        console.log(a);
+                    });
+                },
+                createLine(startPoint) {
+                    return new fabric.Line([startPoint.x, startPoint.y, startPoint.x + 100, startPoint.y], {
+                        fill: 'black',
+                        stroke: 'black'
+                    });
+                },
+                createText(startPoint) {
+                    //return new fabric.Text('文本', {
+                    //    left: startPoint.x,
+                    //    top: startPoint.y,
+                    //    fontSize: 20
+                    //});
+                    return new LabeledRect({
+                        width: 100,
+                        height: 50,
+                        left: startPoint.x,
+                        top: startPoint.y,
+                        label: '文本',
+                        fill: '#fff',
+                        rx: 10,
+                        ry: 10
+                    });
+                },
+                createImage(startPoint, deviceType) {
+                    return new fabric.Text(document.getElementById(deviceType).textContent, {
+                        left: startPoint.x,
+                        top: startPoint.y,
+                        fontSize: 30,
+                        fontFamily: "Glyphicons Halflings",
+                        fill: '#ff0000',
+                    });
+                },
+                registerMethods() {
+                    var _this = this;
+                    var canv = _this.canvas.desginDevice;
+                    canv.on("object:selected", function (opts) {
+                        _this._initActiveStyle(opts.target);
+                        console.log(opts);
+                    });
+                    canv.on("object:added", function (opts) {
+                        _this._initActiveStyle(opts.target);
+                    });
+                    canv.on("object:removed", function (opts) {
+                        console.log("removed:---");
+                        console.log(opts);
+                    });
+                    canv.on("object:modified", function (opts) {
+                        console.log("modified:---");
+                        console.log(opts)
+                        _this._initActiveStyle(opts.target);
+                    })
+                },
+                getActiveStyle(styleName, object) {
+                    var _this = this;
+                    object = object || _this.canvas[_this.tabContents.layer[_this.newIndex.layer]].getActiveObject();
+                    if (!object && !_this.layout[styleName]) return '';
+
+                    var temp = (object.getSelectionStyles && object.isEditing)
+                        ? (object.getSelectionStyles()[styleName] || '')
+                        : (object[styleName] || '');
+                    _this.layout[styleName] = temp;
+                    return temp;
+                },
+                setActiveStyle(styleName, value, object) {
+                    var_this = this, canv = _this.canvas[_this.tabContents.layer[_this.newIndex.layer]];
+                    object = object || canv.getActiveObject();
+                    if (!object) return;
+
+                    if (object.setSelectionStyles && object.isEditing) {
+                        var style = {};
+                        style[styleName] = value;
+                        object.setSelectionStyles(style);
+                        object.setCoords();
+                    }
+                    else {
+                        object.set(styleName, value);
+                    }
+
+                    object.setCoords();
+                    canv.renderAll();
+                },
+                _initActiveStyle(obj) {
+                    var _this = this;
+                    _this.getActiveStyle("left", obj);
+                    _this.getActiveStyle("top", obj);
+                    _this.getActiveStyle("width", obj);
+                    _this.getActiveStyle("height", obj);
+                },
+                _loadJSON(json) {
+                    var _this = this;
+                    _this.canvas[_this.tabContents.layer[_this.newIndex.layer]].loadFromJSON(json, function () {
+                        _this.canvas[_this.tabContents.layer[_this.newIndex.layer]].renderAll();
+                    });
+                }
+            },
+
+            components: {
+                'desginDevice': {
+                    template: "<canvas id='desginDevice' width='800' height='600' style='height:100%;width:100%'></canvas>",
+                },
+                'desginFlow': {
+                    template: "<canvas id='desginFlow' width='800' height='600'  style='height:100%;width:100%'></canvas>",
+                },
+                'preview': {
+                    template: "<canvas id='preview' width='800' height='600'  style='height:100%;width:100%'></canvas>",
+                }
+            }
+        });
+
+    })()
+    var LabeledRect = fabric.util.createClass(fabric.Rect, {
+
+        type: 'labeledRect',
+
+        initialize: function (options) {
+            options || (options = {});
+
+            this.callSuper('initialize', options);
+            this.set('label', options.label || '');
+        },
+
+        toObject: function () {
+            return fabric.util.object.extend(this.callSuper('toObject'), {
+                label: this.get('label')
+            });
+        },
+
+        _render: function (ctx) {
+            this.callSuper('_render', ctx);
+            ctx.font = '20px Helvetica';
+            ctx.fillStyle = '#333';
+            ctx.fillText(this.label, -this.width / 2, -this.height / 2 + 15);
+
+        }
+    });
+</script>

@@ -1,0 +1,11 @@
+D:\project\myproject\SCADA\SCADA\bin\Debug\netcoreapp2.0\SCADA.deps.json
+D:\project\myproject\SCADA\SCADA\bin\Debug\netcoreapp2.0\SCADA.runtimeconfig.json
+D:\project\myproject\SCADA\SCADA\bin\Debug\netcoreapp2.0\SCADA.runtimeconfig.dev.json
+D:\project\myproject\SCADA\SCADA\bin\Debug\netcoreapp2.0\SCADA.dll
+D:\project\myproject\SCADA\SCADA\bin\Debug\netcoreapp2.0\SCADA.pdb
+D:\project\myproject\SCADA\SCADA\obj\Debug\netcoreapp2.0\SCADA.csprojResolveAssemblyReference.cache
+D:\project\myproject\SCADA\SCADA\obj\Debug\netcoreapp2.0\SCADA.csproj.CoreCompileInputs.cache
+D:\project\myproject\SCADA\SCADA\obj\Debug\netcoreapp2.0\SCADA.AssemblyInfoInputs.cache
+D:\project\myproject\SCADA\SCADA\obj\Debug\netcoreapp2.0\SCADA.AssemblyInfo.cs
+D:\project\myproject\SCADA\SCADA\obj\Debug\netcoreapp2.0\SCADA.dll
+D:\project\myproject\SCADA\SCADA\obj\Debug\netcoreapp2.0\SCADA.pdb

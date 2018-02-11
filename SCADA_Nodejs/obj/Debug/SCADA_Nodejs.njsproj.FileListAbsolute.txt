@@ -1,0 +1,3 @@
+D:\project\myproject\SCADA\SCADA_Nodejs\obj\Debug\SCADA_Nodejs.njsprojResolveAssemblyReference.cache
+D:\project\myproject\SCADA\SCADA_Nodejs\obj\Debug\SCADA_Nodejs.njsproj.CoreCompileInputs.cache
+D:\project\myproject\SCADA\SCADA_Nodejs\bin\Microsoft.NodejsTools.WebRole.dll
