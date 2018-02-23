@@ -67,26 +67,29 @@
                     <div class="form-group form-group-sm">
                         <label class="col-sm-3 control-label">x:</label>
                         <div class="col-sm-9">
-                            <input type="number" class="form-control" v-model="layout.left">
+                            <input type="number" class="form-control" data-name="left" v-model="layout.left" v-on:change="setStyle">
                         </div>
                     </div>
                     <div class="form-group form-group-sm">
                         <label for="inputPassword" class="col-sm-3 control-label">y:</label>
                         <div class="col-sm-9">
-                            <input type="number" class="form-control" v-model="layout.top">
+                            <input type="number" class="form-control" data-name="top" v-model="layout.top" v-on:change="setStyle">
                         </div>
                     </div>
                     <div class="form-group form-group-sm">
                         <label for="inputPassword" class="col-sm-3 control-label">宽度:</label>
                         <div class="col-sm-9">
-                            <input type="number" class="form-control" v-model="layout.width">
+                            <input type="number" class="form-control" data-name="width" v-model="layout.width" v-on:change="setStyle">
                         </div>
                     </div>
                     <div class="form-group form-group-sm">
                         <label for="inputPassword" class="col-sm-3 control-label">高度:</label>
                         <div class="col-sm-9">
-                            <input type="number" class="form-control" v-model="layout.height">
+                            <input type="number" class="form-control" data-name="height" v-model="layout.height" v-on:change="setStyle">
                         </div>
+                    </div>
+                    <div class="form-group form-group-sm text-center">
+                       <button class="btn btn-info">应用</button>
                     </div>
                 </div>
                 <div v-else-if="tc=='属性'" class="form-horizontal">
@@ -150,13 +153,13 @@
                 canvas: {
                     desginDevice: null,
                     //desginFlow: null,
-                    preview: null
+                    preview: null,
                 },
                 layout: {
                     left: 0,
                     top: 0,
-                    width: 10,
-                    height: 10,
+                    width: 100,
+                    height: 100,
 
                 },
                 attr: {
@@ -221,10 +224,11 @@
                         default:
                     }
                     _this.canvas[_this.tabContents.layer[_this.newIndex.layer]].add(tempDev);
-                    tempDev.on('selected', function (a) {
-                        console.log("selected a object");
-                        console.log(a);
-                    });
+                    //tempDev.on('selected', function (a) {
+                    //    console.log("selected a object");
+                    //    console.log(a);
+                    //});
+                    _this.canvas[_this.tabContents.layer[_this.newIndex.layer]].setActiveObject(tempDev);
                 },
                 createLine(startPoint) {
                     return new fabric.Line([startPoint.x, startPoint.y, startPoint.x + 100, startPoint.y], {
@@ -238,7 +242,7 @@
                     //    top: startPoint.y,
                     //    fontSize: 20
                     //});
-                    return new LabeledRect({
+                    var item= new LabeledRect({
                         width: 100,
                         height: 50,
                         left: startPoint.x,
@@ -248,6 +252,8 @@
                         rx: 10,
                         ry: 10
                     });
+                    //item.hasControls = false;
+                    return item;
                 },
                 createImage(startPoint, deviceType) {
                     return new fabric.Text(document.getElementById(deviceType).textContent, {
@@ -263,9 +269,9 @@
                     var canv = _this.canvas.desginDevice;
                     canv.on("object:selected", function (opts) {
                         _this._initActiveStyle(opts.target);
-                        console.log(opts);
                     });
                     canv.on("object:added", function (opts) {
+
                         _this._initActiveStyle(opts.target);
                     });
                     canv.on("object:removed", function (opts) {
@@ -290,10 +296,10 @@
                     return temp;
                 },
                 setActiveStyle(styleName, value, object) {
-                    var_this = this, canv = _this.canvas[_this.tabContents.layer[_this.newIndex.layer]];
+                    var _this = this; var canv = _this.canvas[_this.tabContents.layer[_this.newIndex.layer]];
                     object = object || canv.getActiveObject();
-                    if (!object) return;
 
+                    if (!object) return;
                     if (object.setSelectionStyles && object.isEditing) {
                         var style = {};
                         style[styleName] = value;
@@ -303,12 +309,18 @@
                     else {
                         object.set(styleName, value);
                     }
-
                     object.setCoords();
                     canv.renderAll();
                 },
+                setStyle(e) {
+                    var _this = this;
+                    var styleName = e.target.dataset['name'];
+                    _this.layout[styleName] = e.target.value*1;
+                    _this.setActiveStyle(styleName, e.target.value*1);
+                },
                 _initActiveStyle(obj) {
                     var _this = this;
+                    console.log(obj)
                     _this.getActiveStyle("left", obj);
                     _this.getActiveStyle("top", obj);
                     _this.getActiveStyle("width", obj);
