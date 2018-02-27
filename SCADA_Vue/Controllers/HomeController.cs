@@ -13,6 +13,10 @@ namespace SCADA_Vue.Controllers
         {
             return View();
         }
+        public ActionResult Jsplumb()
+        {
+            return View();
+        }
         public ActionResult Test()
         {
             return View();

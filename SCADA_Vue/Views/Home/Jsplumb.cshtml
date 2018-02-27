@@ -1,0 +1,28 @@
+﻿
+@{
+    ViewBag.Title = "Jsplumb";
+}
+<script src="~/Content/js/jsplumb.min.js"></script>
+<style>
+    #FlowDesign, #FlowDesign > div {
+        height: 90%;
+        min-height: 650px;
+    }
+</style>
+<div id="FlowDesign" class="row">
+    <h2 class="text-center">流程图设计界面</h2>
+    <div class="col-sm-2">
+
+    </div>
+    <div class="col-sm-8  table-bordered">
+
+    </div>
+    <div class="col-sm-2">
+
+    </div>
+</div>
+<script>
+    jsPlumb.ready(function () {
+        console.log("hello");
+});
+</script>

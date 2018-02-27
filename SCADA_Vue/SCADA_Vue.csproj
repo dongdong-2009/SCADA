@@ -118,6 +118,8 @@
     <Content Include="Content\fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Content\js\draggable.js" />
     <Content Include="Content\js\fabric.min.js" />
+    <Content Include="Content\js\jsplumb.js" />
+    <Content Include="Content\js\jsplumb.min.js" />
     <Content Include="Global.asax" />
     <Content Include="Web.config" />
     <Content Include="Views\Home\Index.cshtml" />
@@ -146,6 +148,7 @@
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\web.config" />
     <Content Include="Views\Home\Test.cshtml" />
+    <Content Include="Views\Home\Jsplumb.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
