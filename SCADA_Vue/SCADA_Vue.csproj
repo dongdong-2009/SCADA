@@ -120,6 +120,14 @@
     <Content Include="Content\js\fabric.min.js" />
     <Content Include="Content\js\jsplumb.js" />
     <Content Include="Content\js\jsplumb.min.js" />
+    <Content Include="demo\jsplumb\jq\image\index.gif" />
+    <Content Include="demo\jsplumb\jq\image\index.png" />
+    <Content Include="demo\jsplumb\jq\index.html" />
+    <Content Include="demo\jsplumb\jq\js\data.js" />
+    <Content Include="demo\jsplumb\jq\js\index.js" />
+    <Content Include="demo\jsplumb\jq\js\jquery-3.1.1.js" />
+    <Content Include="demo\jsplumb\jq\js\jquery-ui-1.11.2.min.js" />
+    <Content Include="demo\jsplumb\jq\js\jquery.jsPlumb-1.7.2.js" />
     <Content Include="Global.asax" />
     <Content Include="Web.config" />
     <Content Include="Views\Home\Index.cshtml" />
@@ -129,6 +137,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\JsplumbController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -149,6 +158,7 @@
     <Content Include="Views\web.config" />
     <Content Include="Views\Home\Test.cshtml" />
     <Content Include="Views\Home\Jsplumb.cshtml" />
+    <Content Include="Views\Jsplumb\Index.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

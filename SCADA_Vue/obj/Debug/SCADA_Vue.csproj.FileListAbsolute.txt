@@ -80,3 +80,4 @@ D:\project\myproject\SCADA\SCADA_Vue\bin\zh-Hans\System.Web.Razor.resources.dll
 D:\project\myproject\SCADA\SCADA_Vue\bin\zh-Hans\System.Web.WebPages.resources.dll
 D:\project\myproject\SCADA\SCADA_Vue\bin\zh-Hans\System.Web.WebPages.Deployment.resources.dll
 D:\project\myproject\SCADA\SCADA_Vue\bin\zh-Hans\System.Web.WebPages.Razor.resources.dll
+D:\project\myproject\SCADA\SCADA_Vue\obj\Debug\SCADA_Vue.csproj.CopyComplete

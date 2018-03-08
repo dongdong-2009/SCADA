@@ -304,8 +304,6 @@
                 setActiveStyle(styleName, value, object) {
                     var _this = this; var canv = _this.canvas[_this.tabContents.layer[_this.newIndex.layer]];
                     object = object || canv.getActiveObject();
-                    console.log(styleName)
-                    console.log(value)
                     if (!object) return;
                     if (object.setSelectionStyles && object.isEditing) {
                         var style = {};
@@ -338,6 +336,9 @@
                     _this.canvas[_this.tabContents.layer[_this.newIndex.layer]].loadFromJSON(json, function () {
                         _this.canvas[_this.tabContents.layer[_this.newIndex.layer]].renderAll();
                     });
+                },
+                _setHeightOrWidth(name,value) {
+
                 }
             },
 
