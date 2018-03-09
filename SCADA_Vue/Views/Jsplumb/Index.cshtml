@@ -4,93 +4,430 @@
     Layout = null;
 }
 
-<style type="text/css">
-
-    html,
-    body,
-    div,
-    ul,
-    li {
-        margin: 0;
-        padding: 0;
+<script src="~/Content/js/jsplumb.min.js"></script>
+<style>
+    .demo {
+        /* for IE10+ touch devices */
+        touch-action: none;
     }
 
-    html,
-    body,
-    #container {
-        height: 100%;
+    .flowchart-demo .window {
+        border: 1px solid #346789;
+        box-shadow: 2px 2px 19px #aaa;
+        -o-box-shadow: 2px 2px 19px #aaa;
+        -webkit-box-shadow: 2px 2px 19px #aaa;
+        -moz-box-shadow: 2px 2px 19px #aaa;
+        -moz-border-radius: 0.5em;
+        border-radius: 0.5em;
+        opacity: 0.8;
+        width: 80px;
+        height: 80px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        text-align: center;
+        z-index: 20;
+        position: absolute;
+        background-color: #eeeeef;
+        color: black;
+        font-family: helvetica, sans-serif;
+        padding: 0.5em;
+        font-size: 0.9em;
+        -webkit-transition: -webkit-box-shadow 0.15s ease-in;
+        -moz-transition: -moz-box-shadow 0.15s ease-in;
+        -o-transition: -o-box-shadow 0.15s ease-in;
+        transition: box-shadow 0.15s ease-in;
     }
 
-    #container {
-        position: relative;
+        .flowchart-demo .window:hover {
+            box-shadow: 2px 2px 19px #444;
+            -o-box-shadow: 2px 2px 19px #444;
+            -webkit-box-shadow: 2px 2px 19px #444;
+            -moz-box-shadow: 2px 2px 19px #444;
+            opacity: 0.6;
+        }
+
+    .flowchart-demo .active {
+        border: 1px dotted green;
     }
 
-        #container .item {
-            position: absolute;
-            border: 1px solid #000;
-            padding: 10px;
-            padding-right: 25px;
-            border-radius: 5px;
-            cursor: move;
+    .flowchart-demo .hover {
+        border: 1px dotted red;
+    }
+
+    #flowchartWindow1 {
+        top: 34em;
+        left: 5em;
+    }
+
+    #flowchartWindow2 {
+        top: 7em;
+        left: 36em;
+    }
+
+    #flowchartWindow3 {
+        top: 27em;
+        left: 48em;
+    }
+
+    #flowchartWindow4 {
+        top: 23em;
+        left: 22em;
+    }
+
+    .flowchart-demo .jtk-connector {
+        z-index: 4;
+    }
+
+    .flowchart-demo .jtk-endpoint, .endpointTargetLabel, .endpointSourceLabel {
+        z-index: 21;
+        cursor: pointer;
+    }
+
+    .flowchart-demo .aLabel {
+        background-color: white;
+        padding: 0.4em;
+        font: 12px sans-serif;
+        color: #444;
+        z-index: 21;
+        border: 1px dotted gray;
+        opacity: 0.8;
+        cursor: pointer;
+    }
+
+        .flowchart-demo .aLabel.jtk-hover {
+            background-color: #5C96BC;
+            color: white;
+            border: 1px solid white;
         }
 
-            #container .item .dragPoint {
-                display: inline-block;
-                width: 20px;
-                height: 20px;
-                border: 1px solid #000;
-                border-radius: 3px;
-                position: absolute;
-                top: 50%;
-                transform: translate(0, -50%);
-                cursor: pointer;
-            }
-        /*label样式*/
+    .window.jtk-connected {
+        border: 1px solid green;
+    }
 
-        #container ._jsPlumb_overlay {
-            padding: 6px;
-            font-size: 14px;
-            background: #fff;
-            border: 1px solid #00bb00;
-            border-radius: 3px;
-        }
+    .jtk-drag {
+        outline: 4px solid pink !important;
+    }
 
-        #container svg path {
-            stroke-width: 2;
-            cursor: pointer;
-        }
-        /*鼠标移入后前后变色*/
+    path, .jtk-endpoint {
+        cursor: pointer;
+    }
 
-        #container ._jsPlumb_target_hover {
-            background: #00a3ff;
-        }
-
-        #container ._jsPlumb_source_hover {
-            background: #00a3ff;
-        }
+    .jtk-overlay {
+        background-color: transparent;
+    }
 </style>
-<div class="menu">
-    <div class="save">保存</div>
+<style>
+    #FlowDesign, #FlowDesign > div {
+        height: 90%;
+        min-height: 650px;
+    }
+</style>
+<div id="FlowDesign" class="row">
+    <h2 class="text-center">流程图设计界面</h2>
+    <div class="col-sm-2">
+
+    </div>
+    <div class="col-sm-8  table-bordered">
+        <div id="jsLayout" class="jtk-demo-canvas canvas-wide flowchart-demo jtk-surface jtk-surface-nopan">
+            <div class="window jtk-node" id="flowchartWindow1"><strong>1</strong><br /><span class="glyphicon glyphicon-fire"></span><br /></div>
+            <div class="window jtk-node" id="flowchartWindow2"><strong>2</strong><br /><span class="glyphicon glyphicon-fire"></span><br /></div>
+            <div class="window jtk-node" id="flowchartWindow3"><strong>3</strong><br /><span class="glyphicon glyphicon-fire"></span><br /></div>
+            <div class="window jtk-node" id="flowchartWindow4"><strong>4</strong><br /><span class="glyphicon glyphicon-fire"></span><br /></div>
+        </div>
+    </div>
+    <div class="col-sm-2">
+
+    </div>
 </div>
-<div id="container" class="wrap">
-</div>
-<!--增加节点-->
-<div class="todoMenu wrapMenu" style="display: none">
-    <div id="addNode">增加节点</div>
-    <div id="addApartNode">增加分支节点</div>
-</div>
-<!--节点操作-->
-<div class="todoMenu nodeMenu" style="display: none;">
-    <div class="nodeInfo">节点信息</div>
-    <div class="deleteNode">删除节点</div>
-    <div class="nodeSet">节点设置</div>
-</div>
-<div class="todoMenu pathMenu">
-    <div class="pathSet">连接设置</div>
-    <div class="deletePath">删除连接</div>
-</div>
-<script src="~/demo/jsplumb/jq/js/jquery-3.1.1.js"></script>
-<script src="~/demo/jsplumb/jq/js/jquery-ui-1.11.2.min.js"></script>
-<script src="~/demo/jsplumb/jq/js/data.js"></script>
-<script src="~/demo/jsplumb/jq/js/jquery.jsPlumb-1.7.2.js"></script>
-<script src="~/demo/jsplumb/jq/js/index.js"></script>
+<script>
+    // this is the paint style for the connecting lines..
+    var jspConfig = {
+        lineColor: "#2f8e00",
+        basicType : {
+            connector: "StateMachine",
+            paintStyle: { stroke: "red", strokeWidth: 4 },
+            hoverPaintStyle: { stroke: "blue" },
+            overlays: [
+                "Arrow"
+            ]
+        },
+        endpointHoverStyle: {
+            fill: "#216477",
+            stroke: "#216477"
+        },
+        sourceEndpoint: {
+            endpoint: "Dot",
+            paintStyle: {
+                stroke: "#7AB02C",
+                fill: "transparent",
+                radius: 7,
+                strokeWidth: 1
+            },
+            isSource: true,
+            connector: ["Flowchart", { stub: [40, 60], gap: 10, cornerRadius: 5, alwaysRespectStubs: true }],
+            connectorStyle: {
+                strokeWidth: 2,
+                stroke: "#61B7CF",
+                joinstyle: "round",
+                outlineStroke: "white",
+                outlineWidth: 2
+            },
+            hoverPaintStyle: {
+                fill: "#216477",
+                stroke: "#216477"
+            },
+            connectorHoverStyle: {
+                strokeWidth: 3,
+                stroke: "#216477",
+                outlineWidth: 5,
+                outlineStroke: "white"
+            },
+            dragOptions: {},
+            overlays: [
+                ["Label", {
+                    location: [0.5, 1.5],
+                    label: "Drag",
+                    cssClass: "endpointSourceLabel",
+                    visible: false
+                }]
+            ]
+        },
+        targetEndpoint: {
+            endpoint: "Dot",
+            paintStyle: { fill: "#7AB02C", radius: 7 },
+            hoverPaintStyle: {
+                fill: "#216477",
+                stroke: "#216477"
+            },
+            maxConnections: -1,
+            dropOptions: { hoverClass: "hover", activeClass: "active" },
+            isTarget: true,
+            overlays: [
+                ["Label", { location: [0.5, -0.5], label: "Drop", cssClass: "endpointTargetLabel", visible: false }]
+            ]
+        },
+        init: function (connection) {
+            connection.getOverlay("label").setLabel(connection.sourceId.substring(15) + "-" + connection.targetId.substring(15));
+        }
+    }
+    var instance = {};
+    jsPlumb.ready(function () {
+         instance = jsPlumb.getInstance({
+            Endpoint: ["Dot", { radius: 2 }],
+            HoverPaintStyle: { strokeStyle: "#1e8151", lineWidth: 2 },
+            ConnectionOverlays: [
+                ["Arrow", { location: 1, id: "arrow", length: 10, foldback: 0.8, width: 10 }],
+                ["Label", { label: "", id: "label", cssClass: "labelstyle" }]
+            ],
+            DragOptions: { zIndex: 2000 },
+            Cantainer: "jsLayout"
+        });
+        instance.registerConnectionType("basic", jspConfig.basicType);
+       
+        aa(jspConfig.sourceEndpoint, jspConfig.targetEndpoint);
+       // jsPlumb.fire("jsPlumbDemoLoaded", instance);
+    });
+    function aa(se,te) {
+        var _addEndpoints = function (toId, sourceAnchors, targetAnchors) {
+            for (var i = 0; i < sourceAnchors.length; i++) {
+                var sourceUUID = toId + sourceAnchors[i];
+                instance.addEndpoint("flowchart" + toId, se, {
+                    anchor: sourceAnchors[i], uuid: sourceUUID
+                });
+            }
+            for (var j = 0; j < targetAnchors.length; j++) {
+                var targetUUID = toId + targetAnchors[j];
+                instance.addEndpoint("flowchart" + toId, te, { anchor: targetAnchors[j], uuid: targetUUID });
+            }
+        };
+        // suspend drawing and initialise.
+        instance.batch(function () {
+
+           
+            // listen for new connections; initialise them the same way we initialise the connections at startup.
+            instance.bind("connection", function (connInfo, originalEvent) {
+                jspConfig.init(connInfo.connection);
+            });
+
+            // make all the window divs draggable
+            instance.draggable(jsPlumb.getSelector("#jsLayout .jtk-node"), { grid: [20, 20] });
+            // THIS DEMO ONLY USES getSelector FOR CONVENIENCE. Use your library's appropriate selector
+            // method, or document.querySelectorAll:
+            //jsPlumb.draggable(document.querySelectorAll(".window"), { grid: [20, 20] });
+
+          
+
+            //
+            // listen for clicks on connections, and offer to delete connections on click.
+            //
+            instance.bind("click", function (conn, originalEvent) {
+                // if (confirm("Delete connection from " + conn.sourceId + " to " + conn.targetId + "?"))
+                //   instance.detach(conn);
+                conn.toggleType("basic");
+            });
+
+            instance.bind("connectionDrag", function (connection) {
+                console.log("connection " + connection.id + " is being dragged. suspendedElement is ", connection.suspendedElement, " of type ", connection.suspendedElementType);
+            });
+
+            instance.bind("connectionDragStop", function (connection) {
+                console.log("connection " + connection.id + " was dragged");
+            });
+
+            instance.bind("connectionMoved", function (params) {
+                console.log("connection " + params.connection.id + " was moved");
+            });
+        });
+
+        _addEndpoints("Window4", ["TopCenter", "BottomCenter"], ["LeftMiddle", "RightMiddle"]);
+        _addEndpoints("Window2", ["LeftMiddle", "BottomCenter"], ["TopCenter", "RightMiddle"]);
+        _addEndpoints("Window3", ["RightMiddle", "BottomCenter"], ["LeftMiddle", "TopCenter"]);
+        _addEndpoints("Window1", ["LeftMiddle", "RightMiddle"], ["TopCenter", "BottomCenter"]);
+        // connect a few up
+        instance.connect({ uuids: ["Window2BottomCenter", "Window3TopCenter"], editable: true });
+        instance.connect({ uuids: ["Window2LeftMiddle", "Window4LeftMiddle"], editable: true });
+        instance.connect({ uuids: ["Window4TopCenter", "Window4RightMiddle"], editable: true });
+        instance.connect({ uuids: ["Window3RightMiddle", "Window2RightMiddle"], editable: true });
+        instance.connect({ uuids: ["Window4BottomCenter", "Window1TopCenter"], editable: true });
+        instance.connect({ uuids: ["Window3BottomCenter", "Window1BottomCenter"], editable: true });
+            //
+
+    }
+    function initData(data) {
+        var nodes = data.Nodes;
+        var jumps = data.Jumps;
+        //添加节点
+        nodes.forEach(function (item, index, arr) {
+            var $item = $('<div class="item" style="" id=""><span class="text"></span><span class="dragPoint"></span></div>')
+            $item.attr({ 'id': item.Guid })
+            $item.attr({ 'style': item.Style })
+            $item.find('.text').text(item.Name.Chinese)
+            $container.append($item)
+        })
+        //添加连线
+        var windowsDrag = $('#container .item')
+        renderConnect(windowsDrag);
+
+        //------------更改样式-------------
+        for (var i in jumps) {
+            renderConnecter(jumps[i])
+        }
+    }
+    function Data() {
+        return {
+            "nodes": [{
+                "id": "start",
+                "type": "start",
+                "text": "Start",
+                "left": 87,
+                "top": 55,
+                "w": 100,
+                "h": 70
+            },
+            {
+                "id": "question1",
+                "type": "question",
+                "text": "Do Something?",
+                "left": 290,
+                "top": 79,
+                "w": 150,
+                "h": 150
+            },
+            {
+                "id": "decide",
+                "type": "action",
+                "text": "Make Decision",
+                "left": 660,
+                "top": 187,
+                "w": 120,
+                "h": 120
+            },
+            {
+                "id": "something",
+                "type": "output",
+                "text": "Do Something",
+                "left": 827,
+                "top": 414,
+                "w": 120,
+                "h": 50
+            },
+            {
+                "id": "question2",
+                "type": "question",
+                "text": "Do Nothing?",
+                "left": 74,
+                "top": 330,
+                "w": 150,
+                "h": 150
+            },
+            {
+                "id": "nothing",
+                "type": "output",
+                "text": "Do Nothing",
+                "left": 433,
+                "top": 558,
+                "w": 100,
+                "h": 50
+            }],
+            "edges": [
+                {
+                    "source": "start",
+                    "target": "question1",
+                    "data": {}
+                },
+                {
+                    "source": "question1",
+                    "target": "decide",
+                    "data": {
+                        "label": "yes",
+                        "type": "connection"
+                    }
+                },
+                {
+                    "source": "question1",
+                    "target": "question2",
+                    "data": {
+                        "label": "no",
+                        "type": "connection"
+                    }
+                },
+                {
+                    "source": "decide",
+                    "target": "nothing",
+                    "data": {
+                        "label": "Can't Decide",
+                        "type": "connection"
+                    }
+                },
+                {
+                    "source": "decide",
+                    "target": "something",
+                    "data": {
+                        "label": "Decision Made",
+                        "type": "connection"
+                    }
+                },
+                {
+                    "source": "question2",
+                    "target": "decide",
+                    "data": {
+                        "label": "no",
+                        "type": "connection"
+                    }
+                },
+                {
+                    "source": "question2",
+                    "target": "nothing",
+                    "data": {
+                        "label": "yes",
+                        "type": "connection"
+                    }
+                }
+            ],
+            "ports": [],
+            "groups": []
+        }
+    }
+</script>
