@@ -6,7 +6,7 @@
 <script src="//cdn.jsdelivr.net/npm/sortablejs@1.7.0/Sortable.min.js"></script>
 <script src="~/Content/js/draggable.js"></script>
 <script src="~/Content/js/svg.min.js"></script>
-<script src="~/Content/js/jsplumb.min.js"></script>
+<script src="~/Content/js/jsplumb.js"></script>
 <script src="~/Content/initData.js"></script>
 <style>
     #FlowDesign, #FlowDesign > div {
@@ -40,8 +40,8 @@
         </div>
     </div>
     <div class="col-sm-8  table-bordered" id="jsLayout">
-        <div class="dragPoint monitorObj" v-for="node in nodes" :style="{left:node.left,top:node.top}">
-            <div class="" v-bind:id="node.id" >
+        <div class="dragPoint monitorObj" v-for="node in nodes" v-bind:id="node.id" :style="{left:node.left,top:node.top}">
+            <div class="">
                 <i :class="node.icon"></i> {{node.text}}
             </div>
         </div>
@@ -65,24 +65,24 @@
                 ],
                 jspInstance: null,
                 nodes: [{
-                    id: 0,
-                    left: 0,
-                    top: 0,
-                    text: "节点",
+                    id: "element_1",
+                    left: "40%",
+                    top: "40%",
+                    text: "默认节点",
                     icon: "glyphicon glyphicon-text-size"
                 }],
                 container: document.getElementById("jsLayout")
             },
             mounted() {
                 var _this = this; var layout = document.getElementById("jsLayout");
-                _this.jspInstance = initJsplumb("#jsLayout")
+                initJsplumb();
+                _this.jspInstance = window.instance;
                 /*
                 第一次加载设计界面
                 */
                 sortable(document.getElementById('list'), function (item, evt) {
                     var startPoint = _this.isInCanvas(evt, layout);
                     if (startPoint) {
-                        console.log(startPoint);
                         _this._createElements(startPoint, item.dataset.deviceType)
                     }
                 });
@@ -108,15 +108,17 @@
                     var _this = this;
                     var id = _this.nodes.length + 1;
                     var node = {
-                        id: id,
-                        left: startPoint.x,
-                        top: startPoint.y,
+                        id: "element_" + id,
+                        left: startPoint.x + "px",
+                        top: startPoint.y + "px",
                         text: "节点" + id,
                         type: eleType,
                         icon: "glyphicon glyphicon-text-size"
                     }
                     _this.nodes.push(node);
-                    // jsMethods._addElement(_this.jspInstance, _this.node.id);
+                    console.log(node.id)
+
+                     setTimeout(jsMethods._addElement(node.id),100);
                 }
             }
         });

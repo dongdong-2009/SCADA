@@ -12541,9 +12541,6 @@
   },
   "project": {
     "version": "1.0.0",
-    "restoreSettings": {
-      "hideWarningsAndErrors": true
-    },
     "restore": {
       "projectUniqueName": "D:\\project\\myproject\\SCADA\\SCADA\\SCADA.csproj",
       "projectName": "SCADA",

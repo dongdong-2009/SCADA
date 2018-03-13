@@ -21,7 +21,6 @@ var jspConfig = {
             radius: 7,
             strokeWidth: 1
         },
-        isSource: true,
         connector: ["Flowchart", { stub: [40, 60], gap: 10, cornerRadius: 5, alwaysRespectStubs: true }],
         connectorStyle: {
             strokeWidth: 2,
@@ -40,15 +39,7 @@ var jspConfig = {
             outlineWidth: 5,
             outlineStroke: "white"
         },
-        dragOptions: {},
-        overlays: [
-            ["Label", {
-                location: [0.5, 1.5],
-                label: "Drag",
-                cssClass: "endpointSourceLabel",
-                visible: false
-            }]
-        ]
+        
     },
     targetEndpoint: {
         endpoint: "Dot",
@@ -67,8 +58,27 @@ var jspConfig = {
         connection.getOverlay("label").setLabel(connection.sourceId.substring(15) + "-" + connection.targetId.substring(15));
     }
 }
+
+function initJsplumb() {
+    jsPlumb.bind("ready", function () {
+        window.instance = jsPlumb.getInstance({
+            Endpoint: ["Dot", { radius: 2 }],
+            HoverPaintStyle: { strokeStyle: "#1e8151", lineWidth: 2 },
+            ConnectionOverlays: [
+                ["Arrow", { location: 1, id: "arrow", length: 10, foldback: 0.8, width: 10 }],
+                ["Label", { label: "", id: "label", cssClass: "labelstyle" }]
+            ],
+            DragOptions: { zIndex: 2000 },
+            Cantainer: "jsLayout"
+        });
+        instance.registerConnectionType("basic", jspConfig.basicType);
+        jsMethods._initBatch();
+
+        jsPlumb.fire("jsPlumbLoaded", instance);
+    });
+}
 var jsMethods = {
-    _addEndpoints: function (instance, toId, sourceAnchors, targetAnchors) {
+    _addEndpoints: function ( toId, sourceAnchors, targetAnchors) {
         for (var i = 0; i < sourceAnchors.length; i++) {
             var sourceUUID = toId + sourceAnchors[i];
             instance.addEndpoint("flowchart" + toId, jspConfig.sourceEndpoint, {
@@ -80,22 +90,23 @@ var jsMethods = {
             instance.addEndpoint("flowchart" + toId, jspConfig.targetEndpoint, { anchor: targetAnchors[j], uuid: targetUUID });
         }
     },
-    _addElement: function (instance, newId) {
+    _addElement: function (newId) {
         instance.draggable(newId);
         var eps = jsPlumb.getSelector(".dragPoint");
+        console.log(eps)
         for (var i = 0; i < eps.length; i++) {
             var e = eps[i], p = e.parentNode;
             instance.makeSource(e, { parent: p, anchor: "Continuous" }, jspConfig.sourceEndpoint);
         }
         instance.makeTarget(newId, { dropOptions: { hoverClass: "dragHover" }, anchor: "Continuous" }, jspConfig.sourceEndpoint);
     },
-    _connectElements: function (instance, edge) {
+    _connectElements: function ( edge) {
         var line = instance.connect({ source: edge.sourceId, target: edge.targetId, editable: true });
     },
-    _deleteConnect: function (instance, edge) {
+    _deleteConnect: function ( edge) {
 
     },
-    _initBatch: function (instance) {
+    _initBatch: function () {
         // suspend drawing and initialise.
         instance.batch(function () {
             // listen for new connections; initialise them the same way we initialise the connections at startup.
@@ -127,23 +138,4 @@ var jsMethods = {
             });
         });
     }
-}
-
-function initJsplumb() {
-    var instance = jsPlumb.getInstance({
-        Endpoint: ["Dot", { radius: 2 }],
-        HoverPaintStyle: { strokeStyle: "#1e8151", lineWidth: 2 },
-        ConnectionOverlays: [
-            ["Arrow", { location: 1, id: "arrow", length: 10, foldback: 0.8, width: 10 }],
-            ["Label", { label: "", id: "label", cssClass: "labelstyle" }]
-        ],
-        DragOptions: { zIndex: 2000 },
-        Cantainer: "jsLayout"
-    });
-    instance.registerConnectionType("basic", jspConfig.basicType);
-    jsMethods._initBatch(instance);
-
-    jsPlumb.fire("jsPlumbLoaded", instance);
-
-    return instance;
 }
