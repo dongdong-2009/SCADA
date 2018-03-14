@@ -120,6 +120,7 @@
     <Content Include="Content\initSvg.js" />
     <Content Include="Content\js\draggable.js" />
     <Content Include="Content\js\fabric.min.js" />
+    <Content Include="Content\js\jquery.jsPlumb-1.7.2.js" />
     <Content Include="Content\js\jsplumb.js" />
     <Content Include="Content\js\jsplumb.min.js" />
     <Content Include="Content\js\svg.js" />

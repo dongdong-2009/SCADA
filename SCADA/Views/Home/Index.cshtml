@@ -20,6 +20,18 @@
         left: 0;
     }
 
+    .dragPoint {
+    }
+
+        .dragPoint:hover {
+            background-color: aquamarine;
+        }
+
+    .dragHover {
+        background-color: aquamarine;
+    }
+
+
     #jsLayout {
         position: relative;
     }
@@ -46,7 +58,6 @@
         </div>
     </div>
     <div class="col-sm-8  table-bordered" id="jsLayout">
-
     </div>
     <div class="col-sm-2">
 
@@ -54,62 +65,30 @@
 </div>
 <script>
     (function () {
-
-
+        var data = {
+            nodes: [],
+            edges: []
+        }
         var jspConfig = {
             lineColor: "#2f8e00",
-            basicType: {
-                connector: "StateMachine",
-                paintStyle: { stroke: "red", strokeWidth: 4 },
-                hoverPaintStyle: { stroke: "blue" },
-                overlays: [
-                    "Arrow"
-                ]
-            },
             endpointHoverStyle: {
                 fill: "#216477",
                 stroke: "#216477"
             },
-            sourceEndpoint: {
-                endpoint: "Dot",
-                paintStyle: {
-                    stroke: "#7AB02C",
-                    fill: "transparent",
-                    radius: 7,
-                    strokeWidth: 1
-                },
-                connector: ["Flowchart", { stub: [40, 60], gap: 10, cornerRadius: 5, alwaysRespectStubs: true }],
+            my_endpoint: {
+                endpoint: ["Dot", { radius: 6 }],
+                paintStyle: { fill: "#316b31" },
+                isSource: true,
                 connectorStyle: {
-                    strokeWidth: 2,
-                    stroke: "#61B7CF",
-                    joinstyle: "round",
-                    outlineStroke: "white",
-                    outlineWidth: 2
+                    strokeWidth: 5,
+                    stroke: "#316b31",
                 },
-                hoverPaintStyle: {
-                    fill: "#216477",
-                    stroke: "#216477"
-                },
-                connectorHoverStyle: {
-                    strokeWidth: 3,
-                    stroke: "#216477",
-                    outlineWidth: 5,
-                    outlineStroke: "white"
-                },
-
-            },
-            targetEndpoint: {
-                endpoint: "Dot",
-                paintStyle: { fill: "#7AB02C", radius: 7 },
-                hoverPaintStyle: {
-                    fill: "#216477",
-                    stroke: "#216477"
-                },
-                dropOptions: { hoverClass: "hover", activeClass: "active" },
+                connector: ["Flowchart"],
                 isTarget: true,
-                overlays: [
-                    ["Label", { location: [0.5, -0.5], label: "Drop", cssClass: "endpointTargetLabel", visible: false }]
-                ]
+                beforeDrop: function (params) {
+                    return confirm("Connect " + params.sourceId + " to " + params.targetId + "?");
+                },
+                //dropOptions: exampleDropOptions
             },
             init: function (connection) {
                 connection.getOverlay("label").setLabel(connection.sourceId.substring(15) + "-" + connection.targetId.substring(15));
@@ -117,42 +96,28 @@
         }
         jsPlumb.bind("ready", function () {
             var layout = document.getElementById("jsLayout");
-            sortable(document.getElementById('list'), function (item, evt) {
-                var startPoint = _isInCanvas(evt, layout);
-                if (startPoint) {
-                    _createElements(startPoint, item.dataset.deviceType)
-                }
-            });
+
+            jsPlumb.setContainer('jsLayout');
             var instance = jsPlumb.getInstance({
                 Endpoint: ["Dot", { radius: 2 }],
-                HoverPaintStyle: { strokeStyle: "#1e8151", lineWidth: 2 },
+                EndpointHoverStyle: { fill: "orange" },
+                HoverPaintStyle: { strokeStyle: "#orange", lineWidth: 2 },
                 ConnectionOverlays: [
-                    ["Arrow", { location: 1, id: "arrow", length: 10, foldback: 0.8, width: 10 }],
-                    ["Label", { label: "", id: "label", cssClass: "labelstyle" }]
+                    ["Arrow", { location: 1, id: "arrow", length: 10, foldback: 0.5, width: 10 }],
+                    ["Label", { label: "1", id: "label-1", location: 0.25, cssClass: "labelstyle" }],
                 ],
-                DragOptions: { zIndex: 2000 },
-                Cantainer: "jsLayout"
+                DragOptions: { cursor: 'pointer', zIndex: 2000 },
+                Anchors: ["TopCenter", "TopCenter"],
+                PaintStyle: { stroke: '#666' },
+                MaxConnections: 2,//最大连接数
             });
-            instance.registerConnectionType("basic", jspConfig.basicType);
-            function _addElement(newId) {
-                instance.draggable(newId);
-                var eps = jsPlumb.getSelector(".dragPoint");
-                console.log(eps)
-                for (var i = 0; i < eps.length; i++) {
-                    var e = eps[i], p = e.parentNode;
-                    instance.makeSource(e, { parent: p, anchor: "Continuous" }, jspConfig.sourceEndpoint);
-                }
-                instance.makeTarget(newId, { dropOptions: { hoverClass: "dragHover" }, anchor: "Continuous" }, jspConfig.sourceEndpoint);
-            };
+
             // suspend drawing and initialise.
             instance.batch(function () {
                 // listen for new connections; initialise them the same way we initialise the connections at startup.
                 instance.bind("connection", function (connInfo, originalEvent) {
                     jspConfig.init(connInfo.connection);
                 });
-                // make all the window divs draggable
-                // instance.draggable(jsPlumb.getSelector(jsLayout), { grid: [20, 20] });
-
                 //
                 // listen for clicks on connections, and offer to delete connections on click.
                 //
@@ -161,8 +126,40 @@
                     //   instance.detach(conn);
                     conn.toggleType("basic");
                 });
+                sortable(document.getElementById('list'), function (item, evt) {
+                    var startPoint = _isInCanvas(evt, layout);
+                    if (startPoint) {
+                        _createElements(startPoint, item.dataset.devicetype)
+                    }
+                });
 
+                function _createElements(startPoint, eleType) {
+                    var now = new Date();
+                    var len = now.getMilliseconds();
+                    var id = eleType + "_" + now.getMinutes() + now.getMilliseconds();
+                    var node = {
+                        id: id,
+                        left: startPoint.x + "px",
+                        top: startPoint.y + "px",
+                        text: "节点" + len,
+                        type: eleType,
+                        icon: "glyphicon glyphicon-text-size"
+                    }
+                    document.getElementById("jsLayout").appendChild(template(node));
+
+                    instance.addEndpoint(id, { anchor: "TopCenter" }, jspConfig.my_endpoint);
+                    instance.addEndpoint(id, { anchor: "RightMiddle" }, jspConfig.my_endpoint);
+                    instance.addEndpoint(id, { anchor: "BottomCenter" }, jspConfig.my_endpoint);
+                    instance.addEndpoint(id, { anchor: "LeftMiddle" }, jspConfig.my_endpoint);
+                    instance.draggable(id);
+                    instance.repaintEverything();
+                }
+                function _addElement(newId) {
+
+
+                };
                 instance.bind("connectionDrag", function (connection) {
+                    console.log(connection)
                     console.log("connection " + connection.id + " is being dragged. suspendedElement is ", connection.suspendedElement, " of type ", connection.suspendedElementType);
                 });
 
@@ -175,23 +172,7 @@
                 });
             });
 
-            jsPlumb.fire("jsPlumbLoaded", instance);
-            function _createElements(startPoint, eleType) {
-                var now = new Date();
-                var len = now.getMilliseconds();
-                var node = {
-                    id: "element_" + eleType + "_" + now.getMinutes() + now.getMilliseconds(),
-                    left: startPoint.x + "px",
-                    top: startPoint.y + "px",
-                    text: "节点" + len,
-                    type: eleType,
-                    icon: "glyphicon glyphicon-text-size"
-                }
-                var div = "<div class='dragPoint monitorObj' style='left:" + node.left + ";top:" + node.top + "' id='" + node.id
-                    + "'><i class='" + node.icon + "'></i>" + node.text + "</div>";
-                document.getElementById("jsLayout").innerHTML += div;
-                _addElement(node.id);
-            }
+
             function _isInCanvas(evt, toElements) {//判断是否在相应的元素内
                 var startPoint;
                 if (toElements && evt && toElements.getBoundingClientRect()) {
@@ -207,5 +188,40 @@
             };
         });
     })()
-    
+    function template(node) {
+        var div1Config = {
+            id: node.id,
+            className: "dragPoint monitorObj",
+            style: {
+                left: node.left,
+                top: node.top,
+            }
+        };
+        var div1 = createElement("div", div1Config);
+        var div2 = createElement("div");
+
+        var i = createElement("i", {
+            className: node.icon
+        })
+        div2.appendChild(i);
+        div2.appendChild(document.createTextNode(node.text))
+        div1.appendChild(div2);
+        return div1;
+    }
+    function createElement(eleType, options) {
+        var elements = document.createElement(eleType);
+        for (var key in options) {
+            if (typeof options[key] == 'object') {
+                var obj = options[key];
+                for (var o in obj) {
+                    var a = obj[o];
+                    elements[key][o] = a;
+                }
+            } else {
+                elements[key] = options[key]
+            }
+        }
+        return elements;
+
+    }
 </script>
