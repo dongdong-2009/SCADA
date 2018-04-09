@@ -40,19 +40,19 @@
     <h2 class="text-center">流程图设计界面</h2>
     <div class="col-sm-2">
         <div id="list" class="list-group">
-            <a href="#" class="list-group-item" data-deviceType="Text" data-type="Text">
+            <a href="#" class="list-group-item" data-deviceType="text" data-name="文本" data-type="text">
                 <i class="glyphicon glyphicon-text-size"></i> 文本
             </a>
-            <a href="#" class="list-group-item" data-deviceType="concentrator" data-type="concentrator">
+            <a href="#" class="list-group-item" data-deviceType="concentrator" data-name="集中器" data-type="concentrator">
                 <i class="glyphicon glyphicon-bed"></i> 集中器
             </a>
-            <a href="#" class="list-group-item" data-deviceType="water" data-type="water">
+            <a href="#" class="list-group-item" data-deviceType="water" data-name="水表" data-type="water">
                 <i class="glyphicon glyphicon-tint"></i> 水表
             </a>
-            <a href="#" class="list-group-item" data-deviceType="electric" data-type="electric">
+            <a href="#" class="list-group-item" data-deviceType="electric" data-name="电表" data-type="electric">
                 <i class="glyphicon glyphicon-flash"></i> 电表
             </a>
-            <a href="#" class="list-group-item" data-deviceType="gas" data-type="gas">
+            <a href="#" class="list-group-item" data-deviceType="gas" data-name="汽表" data-type="gas">
                 <i class="glyphicon glyphicon-fire"></i> 汽表
             </a>
         </div>
@@ -60,168 +60,326 @@
     <div class="col-sm-8  table-bordered" id="jsLayout">
     </div>
     <div class="col-sm-2">
-
-    </div>
-</div>
-<script>
-    (function () {
-        var data = {
-            nodes: [],
-            edges: []
-        }
-        var jspConfig = {
-            lineColor: "#2f8e00",
-            endpointHoverStyle: {
-                fill: "#216477",
-                stroke: "#216477"
-            },
-            my_endpoint: {
-                endpoint: ["Dot", { radius: 6 }],
-                paintStyle: { fill: "#316b31" },
-                isSource: true,
-                connectorStyle: {
-                    strokeWidth: 5,
-                    stroke: "#316b31",
-                },
-                connector: ["Flowchart"],
-                isTarget: true,
-                beforeDrop: function (params) {
-                    return confirm("Connect " + params.sourceId + " to " + params.targetId + "?");
-                },
-                //dropOptions: exampleDropOptions
-            },
-            init: function (connection) {
-                connection.getOverlay("label").setLabel(connection.sourceId.substring(15) + "-" + connection.targetId.substring(15));
-            }
-        }
-        jsPlumb.bind("ready", function () {
-            var layout = document.getElementById("jsLayout");
-
-            jsPlumb.setContainer('jsLayout');
-            var instance = jsPlumb.getInstance({
-                Endpoint: ["Dot", { radius: 2 }],
-                EndpointHoverStyle: { fill: "orange" },
-                HoverPaintStyle: { strokeStyle: "#orange", lineWidth: 2 },
-                ConnectionOverlays: [
-                    ["Arrow", { location: 1, id: "arrow", length: 10, foldback: 0.5, width: 10 }],
-                    ["Label", { label: "1", id: "label-1", location: 0.25, cssClass: "labelstyle" }],
-                ],
-                DragOptions: { cursor: 'pointer', zIndex: 2000 },
-                Anchors: ["TopCenter", "TopCenter"],
-                PaintStyle: { stroke: '#666' },
-                MaxConnections: 2,//最大连接数
-            });
-
-            // suspend drawing and initialise.
-            instance.batch(function () {
-                // listen for new connections; initialise them the same way we initialise the connections at startup.
-                instance.bind("connection", function (connInfo, originalEvent) {
-                    jspConfig.init(connInfo.connection);
-                });
-                //
-                // listen for clicks on connections, and offer to delete connections on click.
-                //
-                instance.bind("click", function (conn, originalEvent) {
-                    // if (confirm("Delete connection from " + conn.sourceId + " to " + conn.targetId + "?"))
-                    //   instance.detach(conn);
-                    conn.toggleType("basic");
-                });
-                sortable(document.getElementById('list'), function (item, evt) {
-                    var startPoint = _isInCanvas(evt, layout);
-                    if (startPoint) {
-                        _createElements(startPoint, item.dataset.devicetype)
-                    }
-                });
-
-                function _createElements(startPoint, eleType) {
-                    var now = new Date();
-                    var len = now.getMilliseconds();
-                    var id = eleType + "_" + now.getMinutes() + now.getMilliseconds();
-                    var node = {
-                        id: id,
-                        left: startPoint.x + "px",
-                        top: startPoint.y + "px",
-                        text: "节点" + len,
-                        type: eleType,
-                        icon: "glyphicon glyphicon-text-size"
-                    }
-                    document.getElementById("jsLayout").appendChild(template(node));
-
-                    instance.addEndpoint(id, { anchor: "TopCenter" }, jspConfig.my_endpoint);
-                    instance.addEndpoint(id, { anchor: "RightMiddle" }, jspConfig.my_endpoint);
-                    instance.addEndpoint(id, { anchor: "BottomCenter" }, jspConfig.my_endpoint);
-                    instance.addEndpoint(id, { anchor: "LeftMiddle" }, jspConfig.my_endpoint);
-                    instance.draggable(id);
-                    instance.repaintEverything();
+        <ul class="nav nav-tabs">
+            <li class="active" id="nav-style">
+                <a href="#" onclick="toggleShow('style')">样式</a>
+            </li>
+            <li class="" id="nav-events">
+                <a href="#" onclick="toggleShow('events')">属性</a>
+            </li>
+        </ul>
+        <div id="tabs" class="tab-content body-content" style="padding-top:10px;">
+            <div class="tab-pane active" id="tab-style">
+                <div class="form-horizontal">
+                    <div class="form-group form-group-sm">
+                        <label class="col-sm-3 control-label">宽度:</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" name="offsetWidth">
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <label for="inputPassword" class="col-sm-3 control-label">长度:</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" name="offsetHeight">
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <label for="inputPassword" class="col-sm-3 control-label">背景色:</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" name="background-color">
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <label for="inputPassword" class="col-sm-3 control-label">显示名称:</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" name="text">
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <a href="#" onclick="saveSet()" class="btn btn-sm btn-info">保存</a>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane" id="tab-events">
+                <div class="form-horizontal">
+                    <div class="form-group form-group-sm">
+                        <label class="col-sm-3 control-label">事件1:</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" name="events1">
+                        </div>
+                    </div>
+                    <div class="form-group form-group-sm">
+                        <label for="inputPassword" class="col-sm-3 control-label">事件2:</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" name="events2">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            (function () {
+                var data = {
+                    nodes: [],
+                    edges: []
                 }
-                function _addElement(newId) {
+                var jspConfig = {
+                    lineColor: "#2f8e00",
+                    endpointHoverStyle: {
+                        fill: "#216477",
+                        stroke: "#216477"
+                    },
+                    count: {
+                        text: 0,
+                        concentrator: 0,
+                        water: 0,
+                        electric: 0,
+                        gas: 0
+                    },
+                    my_endpoint: {
+                        endpoint: ["Dot", { radius: 6 }],
+                        paintStyle: {
+                            strokeStyle: "#1e8151",
+                            fillStyle: "transparent",
+                            radius: 5,
+                            lineWidth: 2
+                        },
+                        isSource: true,
+                        connectorStyle: {
+                            strokeWidth: 5,
+                            stroke: "#3F6b31",
+                        },
+                        connector: ["Flowchart"],
+                        isTarget: true,
+                        beforeDrop: function (params) {
+                            return confirm("Connect " + params.sourceId + " to " + params.targetId + "?");
+                        },
+                        //dropOptions: exampleDropOptions
+                    },
+                    init: function (connection) {
+                        connection.getOverlay("label").setLabel(connection.sourceId.substring(15) + "-" + connection.targetId.substring(15));
+                    }
+                }
+                var currentElement;
+                jsPlumb.bind("ready", function () {
+                    var layout = document.getElementById("jsLayout");
 
+                    jsPlumb.setContainer('jsLayout');
+                    var instance = jsPlumb.getInstance({
+                        Endpoint: ["Dot", { radius: 2 }],
+                        EndpointHoverStyle: { fill: "orange" },
+                        HoverPaintStyle: { strokeStyle: "#orange", lineWidth: 2 },
+                        ConnectionOverlays: [
+                            ["Arrow", { location: 1, id: "arrow", length: 10, foldback: 0.5, width: 10 }],
+                            ["Label", { label: "1", id: "label-1", location: 0.25, cssClass: "labelstyle" }],
+                        ],
+                        DragOptions: { cursor: 'pointer', zIndex: 2000 },
+                        Anchors: ["TopCenter", "TopCenter"],
+                        PaintStyle: { stroke: '#666' },
+                        MaxConnections: 2,//最大连接数
+                    });
 
+                    // suspend drawing and initialise.
+                    instance.batch(function () {
+                        // listen for new connections; initialise them the same way we initialise the connections at startup.
+                        instance.bind("connection", function (connInfo, originalEvent) {
+                            jspConfig.init(connInfo.connection);
+                        });
+                        //
+                        // listen for clicks on connections, and offer to delete connections on click.
+                        //
+                        instance.bind("click", function (conn, originalEvent) {
+                            // if (confirm("Delete connection from " + conn.sourceId + " to " + conn.targetId + "?"))
+                            //   instance.detach(conn);
+                            // conn.toggleType("basic");
+                            console.log("2222")
+                        });
+                        sortable(document.getElementById('list'), function (item, evt) {
+                            var startPoint = _isInCanvas(evt, layout);
+                            if (startPoint) {
+                                _createElements(startPoint, item.dataset)
+                            }
+                        });
+
+                        function _createElements(startPoint, types) {
+                            var now = new Date();
+                            var id = types.type + "_" + now.getMinutes() + now.getMilliseconds();
+                            var node = {
+                                id: id,
+                                left: startPoint.x + "px",
+                                top: startPoint.y + "px",
+                                text: types.name + jspConfig.count[types.type]++,
+                                type: types.type,
+                                icon: "glyphicon glyphicon-text-size"
+                            }
+                            var t = template(node);
+                            document.getElementById("jsLayout").appendChild(t);
+                            setTimeout(_registerEvent({ id: id }), 1);
+
+                            instance.addEndpoint(id, { anchor: "TopCenter" }, jspConfig.my_endpoint);
+                            instance.addEndpoint(id, { anchor: "RightMiddle" }, jspConfig.my_endpoint);
+                            instance.addEndpoint(id, { anchor: "BottomCenter" }, jspConfig.my_endpoint);
+                            instance.addEndpoint(id, { anchor: "LeftMiddle" }, jspConfig.my_endpoint);
+                            instance.draggable(id);
+                            instance.repaintEverything();
+                        }
+                        instance.bind("connectionDrag", function (connection) {
+                            console.log(connection)
+                            console.log("connection " + connection.id + " is being dragged. suspendedElement is ", connection.suspendedElement, " of type ", connection.suspendedElementType);
+                        });
+
+                        instance.bind("connectionDragStop", function (connection) {
+                            console.log("connection " + connection.id + " was dragged");
+                        });
+
+                        instance.bind("connectionMoved", function (params) {
+                            console.log("connection " + params.connection.id + " was moved");
+                        });
+                    });
+                    function _isInCanvas(evt, toElements) {//判断是否在相应的元素内
+                        var startPoint;
+                        if (toElements && evt && toElements.getBoundingClientRect()) {
+                            ePosition = toElements.getBoundingClientRect();
+                            if ((evt.clientX > ePosition.left && evt.clientX < ePosition.left + toElements.offsetWidth)
+                                && (evt.clientY > ePosition.top && evt.clientY < ePosition.top + toElements.offsetHeight)) {
+                                startPoint = { x: 0, y: 0 };
+                                startPoint.x = (evt.clientX - ePosition.left).toFixed(2);
+                                startPoint.y = (evt.clientY - ePosition.top).toFixed(2);
+                            }
+                        }
+                        return startPoint;
+                    };
+
+                });
+            })()
+            function template(node) {
+                var div1Config = {
+                    id: node.id,
+                    className: "dragPoint monitorObj",
+                    style: {
+                        left: node.left,
+                        top: node.top,
+                    }
                 };
-                instance.bind("connectionDrag", function (connection) {
-                    console.log(connection)
-                    console.log("connection " + connection.id + " is being dragged. suspendedElement is ", connection.suspendedElement, " of type ", connection.suspendedElementType);
-                });
+                var div1 = createElement("div", div1Config);
+                var div2 = createElement("div");
 
-                instance.bind("connectionDragStop", function (connection) {
-                    console.log("connection " + connection.id + " was dragged");
-                });
-
-                instance.bind("connectionMoved", function (params) {
-                    console.log("connection " + params.connection.id + " was moved");
-                });
-            });
-
-
-            function _isInCanvas(evt, toElements) {//判断是否在相应的元素内
-                var startPoint;
-                if (toElements && evt && toElements.getBoundingClientRect()) {
-                    ePosition = toElements.getBoundingClientRect();
-                    if ((evt.clientX > ePosition.left && evt.clientX < ePosition.left + toElements.offsetWidth)
-                        && (evt.clientY > ePosition.top && evt.clientY < ePosition.top + toElements.offsetHeight)) {
-                        startPoint = { x: 0, y: 0 };
-                        startPoint.x = (evt.clientX - ePosition.left).toFixed(2);
-                        startPoint.y = (evt.clientY - ePosition.top).toFixed(2);
+                var i = createElement("i", {
+                    className: node.icon
+                })
+                var spanText = createElement("font")
+                div1.appendChild(i);
+                spanText.appendChild(document.createTextNode(node.text))
+                div1.appendChild(spanText);
+                //div1.appendChild(div2);
+                return div1;
+            }
+            function createElement(eleType, options) {
+                var elements = document.createElement(eleType);
+                for (var key in options) {
+                    if (typeof options[key] == 'object') {
+                        var obj = options[key];
+                        for (var o in obj) {
+                            var a = obj[o];
+                            elements[key][o] = a;
+                        }
+                    } else {
+                        elements[key] = options[key]
                     }
                 }
-                return startPoint;
-            };
-        });
-    })()
-    function template(node) {
-        var div1Config = {
-            id: node.id,
-            className: "dragPoint monitorObj",
-            style: {
-                left: node.left,
-                top: node.top,
-            }
-        };
-        var div1 = createElement("div", div1Config);
-        var div2 = createElement("div");
+                return elements;
 
-        var i = createElement("i", {
-            className: node.icon
-        })
-        div2.appendChild(i);
-        div2.appendChild(document.createTextNode(node.text))
-        div1.appendChild(div2);
-        return div1;
-    }
-    function createElement(eleType, options) {
-        var elements = document.createElement(eleType);
-        for (var key in options) {
-            if (typeof options[key] == 'object') {
-                var obj = options[key];
-                for (var o in obj) {
-                    var a = obj[o];
-                    elements[key][o] = a;
+            }
+            function _registerEvent(element) {
+                var ele = document.getElementById(element.id);
+                ele.addEventListener("click", function (e) {
+                    getProperty(ele, ["offsetHeight", "offsetWidth", "background-color"]);
+                    getName(this);
+                    currentElement = this;
+                    e.preventDefault();
+                }, true);
+            }
+            (function () {
+                //var el = document.querySelector("#tabs .tab-pane");
+                // el.style.display = "block";
+            })()
+            function toggleShow(type) {
+                var currentEle = document.getElementById('nav-' + type),
+                    currentTab = document.getElementById('tab-' + type);
+                if (currentEle && currentEle.parentNode && currentEle.parentNode.children) {
+                    var lis = currentEle.parentNode.children,
+                        tabs = document.getElementById("tabs").children;
+                    for (var i = 0, len = lis.length; i < len; i++) {
+                        if (lis[i].id == ('nav-' + type)) {
+                            lis[i].className += 'active';
+                        } else {
+                            lis[i].className = lis[i].className.replace('active', '');
+                        }
+                        if (tabs[i].id == ('tab-' + type)) {
+                            tabs[i].className += 'active';
+                        } else {
+                            var temp = tabs[i].className;
+                            tabs[i].className = temp.replace('active', '');
+                        }
+                    }
                 }
-            } else {
-                elements[key] = options[key]
             }
-        }
-        return elements;
+            function saveSet() {
+                setProperty(currentElement, ["offsetHeight", "offsetWidth", "background-color"]);
+                setName(currentElement);
+            }
+            function setProperty(element, options) {
+                if (options && options.length > 0) {
+                    for (var i = 0, len = options.length; i < len; i++) {
+                        var t = document.getElementsByName(options[i])[0];
+                        if (t) {
+                            if (element[options[i]]) {
+                                console.log(element[options[i]])
+                                element[options[i]] = t.value;
+                            } else {
+                                var temp = getComputedStyle ? getComputedStyle(element, null) : element.currentStyle;
+                                t.value = temp[options[i]];
+                            }
+                        }
+                    }
+                }
+            }
+            function getProperty(element, options) {
+                if (options && options.length > 0) {
+                    for (var i = 0, len = options.length; i < len; i++) {
+                        var t = document.getElementsByName(options[i])[0];
+                        if (t) {
+                            if (element[options[i]]) {
+                                t.value = element[options[i]];
+                            } else {
+                                var temp = getComputedStyle ? getComputedStyle(element, null) : element.currentStyle;
+                                t.value = temp[options[i]];
+                            }
+                        }
 
-    }
-</script>
+                    }
+
+                }
+            }
+            function getName(element) {
+                if (element && element.children.length > 0) {
+                    var temp = element.children;
+                    for (var i = 0, len = temp.length; i < len; i++) {
+                        if (temp[i].nodeName == 'FONT') {
+                            document.getElementsByName("text")[0].value = temp[i].innerHTML;
+                        }
+                    }
+
+                }
+            }
+            function setName(element) {
+                if (element && element.children.length > 0) {
+                    var temp = element.children;
+                    for (var i = 0, len = temp.length; i < len; i++) {
+                        if (temp[i].nodeName == 'FONT') {
+                            temp[i].innerHTML = document.getElementsByName("text")[0].value;
+                        }
+                    }
+                }
+            }
+        </script>

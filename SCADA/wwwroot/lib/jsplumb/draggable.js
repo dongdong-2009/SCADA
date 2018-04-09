@@ -8,18 +8,20 @@ function sortable(rootEl, onUpdate) {
     });
 
     function _onDragOver(evt) {
+        evt = evt || window.event || arguments.callee.caller.arguments[0];
         evt.preventDefault();
         evt.stopPropagation();
         var target = evt.target;
         evt.dataTransfer.dropEffect = 'copy';
-        if (target && evt.srcElement.children.length > 0) 
-            evt.dataTransfer.setData("text/html", evt.srcElement.children[0])
+        if (target) 
+            evt.dataTransfer.setData("text/html", target)
 
         //if (target && target !== dragEl && target.nodeName == 'LI') {
         //    rootEl.insertBefore(dragEl, target.nextSibling || target);
         //}
     }
     function _onDragEnd(evt) {
+        evt = evt || window.event || arguments.callee.caller.arguments[0];
         evt.preventDefault();
         evt.stopPropagation();
         dragEl.classList.remove('ghost');
@@ -28,6 +30,7 @@ function sortable(rootEl, onUpdate) {
         onUpdate(dragEl, evt);
     }
     rootEl.addEventListener('dragstart', function (evt) {
+        evt = evt || window.event || arguments.callee.caller.arguments[0];
         dragEl = evt.target;
         evt.dataTransfer.effectAllowed = 'copy';
         evt.dataTransfer.setData('Text', dragEl.textContent);
