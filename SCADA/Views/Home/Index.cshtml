@@ -4,6 +4,7 @@
 <script src="~/lib/jsplumb/draggable.js"></script>
 <script src="~/lib/jsplumb/jsplumb.js"></script>
 <script src="~/lib/jsplumb/svg.js"></script>
+<script src="~/lib/colorPicker/colorpicker.js"></script>
 <style>
     #FlowDesign, #FlowDesign > div {
         height: 90%;
@@ -11,13 +12,17 @@
     }
 
     .monitorObj {
-        width: 100px;
-        height: 60px;
+        width: 80px;
+        height: 30px;
         border: 1px solid #ccc;
         text-align: center;
         position: absolute;
         top: 0;
         left: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #ff6a00;
     }
 
     .dragPoint {
@@ -35,24 +40,52 @@
     #jsLayout {
         position: relative;
     }
+
+    #colorShow {
+        width: 35px;
+        height: 35px;
+        border: 1px solid #000000;
+        padding: 1px;
+        float: left;
+    }
+
+    #picker {
+        width: 160px;
+        height: 160px;
+        display: none;
+        float: right;
+    }
+
+    #pickerLeft {
+        width: 84%;
+        height: 100%;
+        float: left;
+    }
+
+    #pickerRight {
+        width: 15%;
+        height: 100%;
+        float: right
+    }
 </style>
 <div id="FlowDesign" class="row">
     <h2 class="text-center">流程图设计界面</h2>
+    <p class="col-sm-12"><a href="#" class="btn btn-info btn-sm">保存</a></p>
     <div class="col-sm-2">
         <div id="list" class="list-group">
-            <a href="#" class="list-group-item" data-deviceType="text" data-name="文本" data-type="text">
+            <a href="#" class="list-group-item" data-deviceType="text" data-name="文本" data-type="text" data-icon="text-size">
                 <i class="glyphicon glyphicon-text-size"></i> 文本
             </a>
-            <a href="#" class="list-group-item" data-deviceType="concentrator" data-name="集中器" data-type="concentrator">
+            <a href="#" class="list-group-item" data-deviceType="concentrator" data-name="集中器" data-type="concentrator" data-icon="bed">
                 <i class="glyphicon glyphicon-bed"></i> 集中器
             </a>
-            <a href="#" class="list-group-item" data-deviceType="water" data-name="水表" data-type="water">
+            <a href="#" class="list-group-item" data-deviceType="water" data-name="水表" data-type="water" data-icon="tint">
                 <i class="glyphicon glyphicon-tint"></i> 水表
             </a>
-            <a href="#" class="list-group-item" data-deviceType="electric" data-name="电表" data-type="electric">
+            <a href="#" class="list-group-item" data-deviceType="electric" data-name="电表" data-type="electric" data-icon="flash">
                 <i class="glyphicon glyphicon-flash"></i> 电表
             </a>
-            <a href="#" class="list-group-item" data-deviceType="gas" data-name="汽表" data-type="gas">
+            <a href="#" class="list-group-item" data-deviceType="gas" data-name="汽表" data-type="gas" data-icon="fire">
                 <i class="glyphicon glyphicon-fire"></i> 汽表
             </a>
         </div>
@@ -86,7 +119,13 @@
                     <div class="form-group form-group-sm">
                         <label for="inputPassword" class="col-sm-3 control-label">背景色:</label>
                         <div class="col-sm-9">
-                            <input type="text" class="form-control" name="background-color">
+                            @*<input type="text" class="form-control" onclick="changeColor()" name="background-color">*@
+                            <div id="colorShow" name="background-color" onclick="changeColor()">
+                            </div>
+                            <div id="picker">
+                                <div id="pickerLeft"></div>
+                                <div id="pickerRight"></div>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group form-group-sm">
@@ -118,13 +157,14 @@
             </div>
         </div>
         <script>
+            var currentElement, colorPick, clickFlag = false;
             (function () {
                 var data = {
                     nodes: [],
                     edges: []
                 }
                 var jspConfig = {
-                    lineColor: "#2f8e00",
+                    lineColor: "#c0c0c0",
                     endpointHoverStyle: {
                         fill: "#216477",
                         stroke: "#216477"
@@ -137,22 +177,27 @@
                         gas: 0
                     },
                     my_endpoint: {
-                        endpoint: ["Dot", { radius: 6 }],
+                        endpoint: ["Dot", { radius: 2 }],
                         paintStyle: {
                             strokeStyle: "#1e8151",
                             fillStyle: "transparent",
-                            radius: 5,
-                            lineWidth: 2
+                            radius: 6,
+                            lineWidth: 1
                         },
                         isSource: true,
                         connectorStyle: {
-                            strokeWidth: 5,
-                            stroke: "#3F6b31",
+                            strokeWidth: 2,
+                            stroke: "#c0c0c0",
                         },
                         connector: ["Flowchart"],
                         isTarget: true,
                         beforeDrop: function (params) {
-                            return confirm("Connect " + params.sourceId + " to " + params.targetId + "?");
+                            if (params.sourceId === params.targetId) {
+                                return false
+                            } else {
+                                return true
+                            }
+                           // return confirm("Connect " + params.sourceId + " to " + params.targetId + "?");
                         },
                         //dropOptions: exampleDropOptions
                     },
@@ -160,23 +205,21 @@
                         connection.getOverlay("label").setLabel(connection.sourceId.substring(15) + "-" + connection.targetId.substring(15));
                     }
                 }
-                var currentElement;
                 jsPlumb.bind("ready", function () {
                     var layout = document.getElementById("jsLayout");
-
                     jsPlumb.setContainer('jsLayout');
                     var instance = jsPlumb.getInstance({
                         Endpoint: ["Dot", { radius: 2 }],
                         EndpointHoverStyle: { fill: "orange" },
-                        HoverPaintStyle: { strokeStyle: "#orange", lineWidth: 2 },
+                        HoverPaintStyle: { strokeStyle: "#orange", lineWidth: 1 },
                         ConnectionOverlays: [
-                            ["Arrow", { location: 1, id: "arrow", length: 10, foldback: 0.5, width: 10 }],
-                            ["Label", { label: "1", id: "label-1", location: 0.25, cssClass: "labelstyle" }],
+                            ["Arrow", { location: 1, id: "arrow", length: 10, foldback: 0.5, width: 2 }],
+                            ["Label", { label: "", id: "label-1", location: 0.25, cssClass: "labelstyle" }],
                         ],
                         DragOptions: { cursor: 'pointer', zIndex: 2000 },
                         Anchors: ["TopCenter", "TopCenter"],
                         PaintStyle: { stroke: '#666' },
-                        MaxConnections: 2,//最大连接数
+                        MaxConnections: -1,//最大连接数
                     });
 
                     // suspend drawing and initialise.
@@ -190,14 +233,16 @@
                         //
                         instance.bind("click", function (conn, originalEvent) {
                             // if (confirm("Delete connection from " + conn.sourceId + " to " + conn.targetId + "?"))
-                            //   instance.detach(conn);
+                            instance.deleteConnection(conn);
                             // conn.toggleType("basic");
-                            console.log("2222")
+                            console.log(conn)
+                            console.log(originalEvent)
                         });
                         sortable(document.getElementById('list'), function (item, evt) {
                             var startPoint = _isInCanvas(evt, layout);
                             if (startPoint) {
-                                _createElements(startPoint, item.dataset)
+                                _createElements(startPoint, item.dataset);
+
                             }
                         });
 
@@ -210,7 +255,7 @@
                                 top: startPoint.y + "px",
                                 text: types.name + jspConfig.count[types.type]++,
                                 type: types.type,
-                                icon: "glyphicon glyphicon-text-size"
+                                icon: "glyphicon glyphicon-" + types.icon
                             }
                             var t = template(node);
                             document.getElementById("jsLayout").appendChild(t);
@@ -295,11 +340,15 @@
                 ele.addEventListener("click", function (e) {
                     getProperty(ele, ["offsetHeight", "offsetWidth", "background-color"]);
                     getName(this);
+                   
+                    console.log("------------")
                     currentElement = this;
+                    console.log(currentElement)
                     e.preventDefault();
                 }, true);
             }
             (function () {
+                initColorPicker();
                 //var el = document.querySelector("#tabs .tab-pane");
                 // el.style.display = "block";
             })()
@@ -325,7 +374,7 @@
                 }
             }
             function saveSet() {
-                setProperty(currentElement, ["offsetHeight", "offsetWidth", "background-color"]);
+                setProperty(currentElement, ["offsetHeight", "offsetWidth"]);
                 setName(currentElement);
             }
             function setProperty(element, options) {
@@ -333,12 +382,18 @@
                     for (var i = 0, len = options.length; i < len; i++) {
                         var t = document.getElementsByName(options[i])[0];
                         if (t) {
+                            if (options[i] == "offsetHeight") {
+                                element.style.height = t.value + 'px';
+                                continue;
+                            }
+                            if (options[i] == "offsetWidth") {
+                                element.style.width = t.value + 'px';
+                                continue;
+                            }
                             if (element[options[i]]) {
-                                console.log(element[options[i]])
                                 element[options[i]] = t.value;
                             } else {
-                                var temp = getComputedStyle ? getComputedStyle(element, null) : element.currentStyle;
-                                t.value = temp[options[i]];
+                                element.style[options[i]] = t.value;
                             }
                         }
                     }
@@ -353,6 +408,11 @@
                                 t.value = element[options[i]];
                             } else {
                                 var temp = getComputedStyle ? getComputedStyle(element, null) : element.currentStyle;
+                                if (options[i] == 'background-color') {
+                                    var rgb = temp[options[i]];
+                                    document.getElementById("colorShow").style.backgroundColor = rgb;
+                                    continue;
+                                }
                                 t.value = temp[options[i]];
                             }
                         }
@@ -380,6 +440,31 @@
                             temp[i].innerHTML = document.getElementsByName("text")[0].value;
                         }
                     }
+                }
+            }
+            function changeColor() {
+                var p = document.getElementById("picker");
+                if (clickFlag) {
+                    p.style.display = "none";
+                    clickFlag = false;
+                } else {
+                    p.style.display = "block";
+                    clickFlag = true;
+                }
+
+            }
+            function initColorPicker() {
+                var d = document.getElementById("colorShow"),
+                    l = document.getElementById("pickerLeft"),
+                    r = document.getElementById("pickerRight");
+                if (!colorPick) {
+                    colorPick = ColorPicker(r, l, function (hex) {
+                        if (currentElement) {
+                            d.style.backgroundColor = hex;
+                            currentElement.style.backgroundColor = hex;
+                            console.log(currentElement)
+                        }
+                    })
                 }
             }
         </script>
