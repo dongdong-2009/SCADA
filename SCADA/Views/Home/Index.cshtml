@@ -5,6 +5,8 @@
 <script src="~/lib/jsplumb/jsplumb.js"></script>
 <script src="~/lib/jsplumb/svg.js"></script>
 <script src="~/lib/colorPicker/colorpicker.js"></script>
+<script src="~/lib/jquery/dist/jquery.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
 <style>
     #FlowDesign, #FlowDesign > div {
         height: 90%;
@@ -12,8 +14,8 @@
     }
 
     .monitorObj {
-        width: 80px;
-        height: 30px;
+        width: 100px;
+        height: 50px;
         border: 1px solid #ccc;
         text-align: center;
         position: absolute;
@@ -66,6 +68,12 @@
         width: 15%;
         height: 100%;
         float: right
+    }
+
+    .data {
+        width: 100%;
+        min-height: 1px;
+        display: block;
     }
 </style>
 <div id="FlowDesign" class="row">
@@ -159,353 +167,405 @@
                 </div>
             </div>
         </div>
-        <script>
-            var currentElement, colorPick, clickFlag = false, instance,
-                nodes = [],
-                edges = [];
-            var jspConfig = {
-                count: {
-                    text: 0,
-                    concentrator: 0,
-                    water: 0,
-                    electric: 0,
-                    gas: 0
-                },
-                my_endpoint: {
-                    endpoint: ["Dot", { radius: 2 }],
-                    paintStyle: {
-                        strokeStyle: "#1e8151",
-                        fillStyle: "transparent",
-                        radius: 6,
-                        lineWidth: 1
-                    },
-                    hoverPaintStyle: { fill: "#449999" },
-                    isSource: true,
-                    connectorStyle: {
-                        strokeWidth: 2,
-                        stroke: "#c0c0c0",
-                    },
-                    connectorHoverStyle: {
-                        stroke: "#0c0c0c",
-                    },
-                    connector: ["Flowchart"],
-                    isTarget: true,
-                    beforeDrop: function (params) {
-                        if (params.sourceId === params.targetId) {
-                            return false
-                        } else {
-                            return true
-                        }
-                    },
-                    //dropOptions: exampleDropOptions
-                },
-                init: function (connection) {
-                    connection.getOverlay("label").setLabel(connection.sourceId.substring(15) + "-" + connection.targetId.substring(15));
-                }
-            }
-            jsPlumb.bind("ready", function () {
-                var layout = document.getElementById("jsLayout");
-                jsPlumb.setContainer('jsLayout');
-                instance = jsPlumb.getInstance({
-                    Endpoint: ["Dot", { radius: 2 }],
-                    EndpointHoverStyle: { fill: "orange" },
-                    HoverPaintStyle: { strokeStyle: "#orange", lineWidth: 1 },
-                    ConnectionOverlays: [
-                        ["Arrow", { location: 1, id: "arrow", length: 10, foldback: 0.5, width: 2 }],
-                        ["Label", { label: "", id: "label-1", location: 0.25, cssClass: "labelstyle" }],
-                    ],
-                    DragOptions: { cursor: 'pointer', zIndex: 2000 },
-                    Anchors: ["TopCenter", "TopCenter"],
-                    PaintStyle: { stroke: '#666' },
-                    MaxConnections: -1,//最大连接数
-                });
-
-                // suspend drawing and initialise.
-                instance.batch(function () {
-                    // listen for new connections; initialise them the same way we initialise the connections at startup.
-                    instance.bind("connection", function (connInfo, originalEvent) {
-                        jspConfig.init(connInfo.connection);
-                    });
-                    //
-                    // listen for clicks on connections, and offer to delete connections on click.
-                    //
-                    instance.bind("click", function (conn, originalEvent) {
-                        // if (confirm("Delete connection from " + conn.sourceId + " to " + conn.targetId + "?"))
-                        instance.deleteConnection(conn);
-                    });
-                    sortable(document.getElementById('list'), function (item, evt) {
-                        var startPoint = _isInCanvas(evt, layout);
-                        if (startPoint) {
-                            _createElements(startPoint, item.dataset);
-
-                        }
-                    });
-
-                    function _createElements(startPoint, types) {
-                        var now = new Date();
-                        var id = types.type + "_" + now.getMinutes() + now.getMilliseconds();
-                        var node = {
-                            id: id,
-                            style: {
-                                left: startPoint.x + "px",
-                                top: startPoint.y + "px",
-                            },
-                            text: types.name + jspConfig.count[types.type]++,
-                            type: types.type,
-                            icon: "glyphicon glyphicon-" + types.icon + " " + types.type
-                        }
-                        var t = template(node);
-                        document.getElementById("jsLayout").appendChild(t);
-                        setTimeout(_registerEvent({ id: id }), 1);
-                        addPoint(id, jspConfig.my_endpoint);
-                    }
-                    instance.bind("connectionDrag", function (connection) {
-                        console.log(connection)
-                        console.log("connection " + connection.id + " is being dragged. suspendedElement is ", connection.suspendedElement, " of type ", connection.suspendedElementType);
-                    });
-
-                    instance.bind("connectionDragStop", function (connection) {
-                        console.log("connection " + connection.id + " was dragged");
-                    });
-
-                    instance.bind("connectionMoved", function (params) {
-
-                        console.log("connection " + params.connection.id + " was moved");
-                    });
-                });
-                function _isInCanvas(evt, toElements) {//判断是否在相应的元素内
-                    var startPoint;
-                    if (toElements && evt && toElements.getBoundingClientRect()) {
-                        ePosition = toElements.getBoundingClientRect();
-                        if ((evt.clientX > ePosition.left && evt.clientX < ePosition.left + toElements.offsetWidth)
-                            && (evt.clientY > ePosition.top && evt.clientY < ePosition.top + toElements.offsetHeight)) {
-                            startPoint = { x: 0, y: 0 };
-                            startPoint.x = (evt.clientX - ePosition.left).toFixed(2);
-                            startPoint.y = (evt.clientY - ePosition.top).toFixed(2);
-                        }
-                    }
-                    return startPoint;
-                };
-
-            });
-            function addPoint(id, style) {
-                instance.addEndpoint(id, { anchor: "TopCenter", uuid: "TopCenter_" + id }, style);
-                instance.addEndpoint(id, { anchor: "RightMiddle", uuid: "RightMiddle_" + id }, style);
-                instance.addEndpoint(id, { anchor: "BottomCenter", uuid: "BottomCenter_" + id }, style);
-                instance.addEndpoint(id, { anchor: "LeftMiddle", uuid: "LeftMiddle_" + id }, style);
-                instance.draggable(id);
-                instance.repaintEverything();
-            }
-            function template(node) {
-                var div1Config = {
-                    id: node.id,
-                    className: "dragPoint monitorObj",
-                    style: node.style
-                };
-                var div1 = createElement("div", div1Config);
-                var div2 = createElement("div");
-
-                var i = createElement("i", {
-                    className: node.icon
-                })
-                var spanText = createElement("font")
-                div1.appendChild(i);
-                spanText.appendChild(document.createTextNode(node.text))
-                div1.appendChild(spanText);
-                //div1.appendChild(div2);
-                return div1;
-            }
-            function createElement(eleType, options) {
-                var elements = document.createElement(eleType);
-                for (var key in options) {
-                    if (typeof options[key] == 'object') {
-                        var obj = options[key];
-                        for (var o in obj) {
-                            var a = obj[o];
-                            elements[key][o] = a;
-                        }
-                    } else {
-                        elements[key] = options[key]
-                    }
-                }
-                return elements;
-
-            }
-            function _registerEvent(element) {
-                var ele = document.getElementById(element.id);
-                ele.addEventListener("click", function (e) {
-                    getProperty(ele, ["offsetHeight", "offsetWidth", "background-color"]);
-                    getName(this);
-                    currentElement = this;
-                    e.preventDefault();
-                }, true);
-            }
-            (function () {
-                initColorPicker();
-                //var el = document.querySelector("#tabs .tab-pane");
-                // el.style.display = "block";
-            })()
-            function toggleShow(type) {
-                var currentEle = document.getElementById('nav-' + type),
-                    currentTab = document.getElementById('tab-' + type);
-                if (currentEle && currentEle.parentNode && currentEle.parentNode.children) {
-                    var lis = currentEle.parentNode.children,
-                        tabs = document.getElementById("tabs").children;
-                    for (var i = 0, len = lis.length; i < len; i++) {
-                        if (lis[i].id == ('nav-' + type)) {
-                            lis[i].className += 'active';
-                        } else {
-                            lis[i].className = lis[i].className.replace('active', '');
-                        }
-                        if (tabs[i].id == ('tab-' + type)) {
-                            tabs[i].className += 'active';
-                        } else {
-                            var temp = tabs[i].className;
-                            tabs[i].className = temp.replace('active', '');
-                        }
-                    }
-                }
-            }
-            function saveSet() {
-                setProperty(currentElement, ["offsetHeight", "offsetWidth"]);
-                setName(currentElement);
-            }
-            function setProperty(element, options) {
-                if (options && options.length > 0) {
-                    for (var i = 0, len = options.length; i < len; i++) {
-                        var t = document.getElementsByName(options[i])[0];
-                        if (t) {
-                            if (options[i] == "offsetHeight") {
-                                element.style.height = t.value + 'px';
-                                continue;
-                            }
-                            if (options[i] == "offsetWidth") {
-                                element.style.width = t.value + 'px';
-                                continue;
-                            }
-                            if (element[options[i]]) {
-                                element[options[i]] = t.value;
-                            } else {
-                                element.style[options[i]] = t.value;
-                            }
-                        }
-                    }
-                }
-            }
-            function getProperty(element, options) {
-                if (options && options.length > 0) {
-                    for (var i = 0, len = options.length; i < len; i++) {
-                        var t = document.getElementsByName(options[i])[0];
-                        if (t) {
-                            if (element[options[i]]) {
-                                t.value = element[options[i]];
-                            } else {
-                                var temp = getComputedStyle ? getComputedStyle(element, null) : element.currentStyle;
-                                if (options[i] == 'background-color') {
-                                    var rgb = temp[options[i]];
-                                    document.getElementById("colorShow").style.backgroundColor = rgb;
-                                    continue;
-                                }
-                                t.value = temp[options[i]];
-                            }
-                        }
-
-                    }
-
-                }
-            }
-            function getName(element) {
-                if (element && element.children.length > 0) {
-                    var temp = element.children;
-                    for (var i = 0, len = temp.length; i < len; i++) {
-                        if (temp[i].nodeName == 'FONT') {
-                            document.getElementsByName("text")[0].value = temp[i].innerHTML;
-                        }
-                    }
-
-                }
-            }
-            function setName(element) {
-                if (element && element.children.length > 0) {
-                    var temp = element.children;
-                    for (var i = 0, len = temp.length; i < len; i++) {
-                        if (temp[i].nodeName == 'FONT') {
-                            temp[i].innerHTML = document.getElementsByName("text")[0].value;
-                        }
-                    }
-                }
-            }
-            function changeColor() {
-                var p = document.getElementById("picker");
-                if (clickFlag) {
-                    p.style.display = "none";
-                    clickFlag = false;
+    </div>
+</div>
+<div id="content" style="display:none;">
+    <div id="water">
+        <div class="col-sm-12" style="width:150px;height:200px;">
+            详情
+        </div>
+    </div>
+    <div id="gas">
+        <div class="col-sm-12" style="width:150px;height:200px;">
+            详情
+        </div>
+    </div>
+    <div id="electric">
+        <div class="col-sm-12" style="width:150px;height:200px;">
+            {:type}
+            {:type}
+            {:type}
+            {:type}
+        </div>
+    </div>
+    <div id="concentrator">
+        <div class="col-sm-12" style="width:150px;height:200px;">
+            详情
+        </div>
+    </div>
+    <div class="others">
+        <div class="col-sm-12" style="width:150px;height:200px;">
+            详情
+        </div>
+    </div>
+</div>
+<script>
+    var currentElement, colorPick, clickFlag = false, instance,
+        nodes = [],
+        edges = [];
+    var jspConfig = {
+        count: {
+            text: 0,
+            concentrator: 0,
+            water: 0,
+            electric: 0,
+            gas: 0
+        },
+        my_endpoint: {
+            endpoint: ["Dot", { radius: 2 }],
+            paintStyle: {
+                strokeStyle: "#1e8151",
+                fillStyle: "transparent",
+                radius: 6,
+                lineWidth: 1
+            },
+            hoverPaintStyle: { fill: "#449999" },
+            isSource: true,
+            connectorStyle: {
+                strokeWidth: 2,
+                stroke: "#c0c0c0",
+            },
+            connectorHoverStyle: {
+                stroke: "#0c0c0c",
+            },
+            connector: ["Flowchart"],
+            isTarget: true,
+            beforeDrop: function (params) {
+                if (params.sourceId === params.targetId) {
+                    return false
                 } else {
-                    p.style.display = "block";
-                    clickFlag = true;
+                    return true
                 }
+            },
+            //dropOptions: exampleDropOptions
+        },
+        init: function (connection) {
+            connection.getOverlay("label").setLabel(connection.sourceId.substring(15) + "-" + connection.targetId.substring(15));
+        }
+    }
+    jsPlumb.bind("ready", function () {
+        var layout = document.getElementById("jsLayout");
+        jsPlumb.setContainer('jsLayout');
+        instance = jsPlumb.getInstance({
+            Endpoint: ["Dot", { radius: 2 }],
+            EndpointHoverStyle: { fill: "orange" },
+            HoverPaintStyle: { strokeStyle: "#orange", lineWidth: 1 },
+            ConnectionOverlays: [
+                ["Arrow", { location: 1, id: "arrow", length: 10, foldback: 0.5, width: 2 }],
+                ["Label", { label: "", id: "label-1", location: 0.25, cssClass: "labelstyle" }],
+            ],
+            DragOptions: { cursor: 'pointer', zIndex: 2000 },
+            Anchors: ["TopCenter", "TopCenter"],
+            PaintStyle: { stroke: '#666' },
+            MaxConnections: -1,//最大连接数
+        });
 
+        // suspend drawing and initialise.
+        instance.batch(function () {
+            // listen for new connections; initialise them the same way we initialise the connections at startup.
+            instance.bind("connection", function (connInfo, originalEvent) {
+                jspConfig.init(connInfo.connection);
+            });
+            //
+            // listen for clicks on connections, and offer to delete connections on click.
+            //
+            instance.bind("click", function (conn, originalEvent) {
+                // if (confirm("Delete connection from " + conn.sourceId + " to " + conn.targetId + "?"))
+                instance.deleteConnection(conn);
+            });
+            sortable(document.getElementById('list'), function (item, evt) {
+                var startPoint = _isInCanvas(evt, layout);
+                if (startPoint) {
+                    _createElements(startPoint, item.dataset);
+
+                }
+            });
+
+            function _createElements(startPoint, types) {
+                var now = new Date();
+                var id = types.type + "_" + now.getMinutes() + now.getMilliseconds();
+                var node = {
+                    id: id,
+                    style: {
+                        left: startPoint.x + "px",
+                        top: startPoint.y + "px",
+                    },
+                    text: types.name + jspConfig.count[types.type]++,
+                    type: types.type,
+                    icon: "glyphicon glyphicon-" + types.icon + " " + types.type
+                }
+                var t = template(node);
+                document.getElementById("jsLayout").appendChild(t);
+                setTimeout(_registerEvent({ id: id }), 1);
+                addPoint(id, jspConfig.my_endpoint);
             }
-            function initColorPicker() {
-                var d = document.getElementById("colorShow"),
-                    l = document.getElementById("pickerLeft"),
-                    r = document.getElementById("pickerRight");
-                if (!colorPick) {
-                    colorPick = ColorPicker(r, l, function (hex) {
-                        if (currentElement) {
-                            d.style.backgroundColor = hex;
-                            currentElement.style.backgroundColor = hex;
-                            console.log(currentElement)
-                        }
-                    })
+            instance.bind("connectionDrag", function (connection) {
+
+                console.log("connection " + connection.id + " is being dragged. suspendedElement is ", connection.suspendedElement, " of type ", connection.suspendedElementType);
+            });
+
+            instance.bind("connectionDragStop", function (connection) {
+                console.log("connection " + connection.id + " was dragged");
+            });
+
+            instance.bind("connectionMoved", function (params) {
+
+                console.log("connection " + params.connection.id + " was moved");
+            });
+        });
+        function _isInCanvas(evt, toElements) {//判断是否在相应的元素内
+            var startPoint;
+            if (toElements && evt && toElements.getBoundingClientRect()) {
+                ePosition = toElements.getBoundingClientRect();
+                if ((evt.clientX > ePosition.left && evt.clientX < ePosition.left + toElements.offsetWidth)
+                    && (evt.clientY > ePosition.top && evt.clientY < ePosition.top + toElements.offsetHeight)) {
+                    startPoint = { x: 0, y: 0 };
+                    startPoint.x = (evt.clientX - ePosition.left).toFixed(2);
+                    startPoint.y = (evt.clientY - ePosition.top).toFixed(2);
                 }
             }
-            function saveAll() {
-                var eles = document.querySelectorAll(".monitorObj")
-                for (var i = 0, len = eles.length; i < len; i++) {
-                    var e = eles[i], node = {
-                        style: {}
-                    };
-                    node.id = e.id;
-                    node.icon = e.children[0].className;
-                    node.text = e.children[1].innerHTML;
-                    node.type = e.children[0].className.split(" ")[2];
-                    node.style.height = e.offsetHeight;
-                    node.style.width = e.offsetWidth;
-                    node.style.left = e.style.left;
-                    node.style.top = e.style.top;
-                    nodes.push(node);
+            return startPoint;
+        };
+
+    });
+    function addPoint(id, style) {
+        instance.addEndpoint(id, { anchor: "TopCenter", uuid: "TopCenter_" + id }, style);
+        instance.addEndpoint(id, { anchor: "RightMiddle", uuid: "RightMiddle_" + id }, style);
+        instance.addEndpoint(id, { anchor: "BottomCenter", uuid: "BottomCenter_" + id }, style);
+        instance.addEndpoint(id, { anchor: "LeftMiddle", uuid: "LeftMiddle_" + id }, style);
+        instance.draggable(id);
+        instance.repaintEverything();
+    }
+    function template(node) {
+        var div1Config = {
+            id: node.id,
+            className: "dragPoint monitorObj",
+            style: node.style
+        };
+        var div1 = createElement("div", div1Config);
+        var div2 = createElement("div", { className: "data" });
+        var div3 = createElement("div");
+        var i = createElement("i", { className: node.icon });
+        var spanText = createElement("font")
+        div3.appendChild(i);
+        spanText.appendChild(document.createTextNode(node.text))
+        div3.appendChild(spanText);
+        div1.appendChild(div3);
+        div1.appendChild(div2);
+        return div1;
+    }
+    function createElement(eleType, options) {
+        var elements = document.createElement(eleType);
+        for (var key in options) {
+            if (typeof options[key] == 'object') {
+                var obj = options[key];
+                for (var o in obj) {
+                    var a = obj[o];
+                    elements[key][o] = a;
                 }
-                var conns = instance.getAllConnections();
-                if (conns && conns.length > 0) {
-                    for (var i = 0, len = conns.length; i < len; i++) {
-                        var con = conns[i], c = {};
-                        c.uuids = [con.endpoints[0].getUuid(), con.endpoints[1].getUuid()];
-                        edges.push(c);
+            } else {
+                elements[key] = options[key]
+            }
+        }
+        return elements;
+
+    }
+    function _registerEvent(element) {
+        var ele = document.getElementById(element.id);
+        ele.addEventListener("click", function (e) {
+            getProperty(ele, ["offsetHeight", "offsetWidth", "background-color"]);
+            getName(this);
+            currentElement = this;
+            e.preventDefault();
+        }, true);
+        getInfomation(ele);
+    }
+    (function () {
+        initColorPicker();
+        //var el = document.querySelector("#tabs .tab-pane");
+        // el.style.display = "block";
+    })()
+    function toggleShow(type) {
+        var currentEle = document.getElementById('nav-' + type),
+            currentTab = document.getElementById('tab-' + type);
+        if (currentEle && currentEle.parentNode && currentEle.parentNode.children) {
+            var lis = currentEle.parentNode.children,
+                tabs = document.getElementById("tabs").children;
+            for (var i = 0, len = lis.length; i < len; i++) {
+                if (lis[i].id == ('nav-' + type)) {
+                    lis[i].className += 'active';
+                } else {
+                    lis[i].className = lis[i].className.replace('active', '');
+                }
+                if (tabs[i].id == ('tab-' + type)) {
+                    tabs[i].className += 'active';
+                } else {
+                    var temp = tabs[i].className;
+                    tabs[i].className = temp.replace('active', '');
+                }
+            }
+        }
+    }
+    function saveSet() {
+        setProperty(currentElement, ["offsetHeight", "offsetWidth"]);
+        setName(currentElement);
+    }
+    function setProperty(element, options) {
+        if (options && options.length > 0) {
+            for (var i = 0, len = options.length; i < len; i++) {
+                var t = document.getElementsByName(options[i])[0];
+                if (t) {
+                    if (options[i] == "offsetHeight") {
+                        element.style.height = t.value + 'px';
+                        continue;
+                    }
+                    if (options[i] == "offsetWidth") {
+                        element.style.width = t.value + 'px';
+                        continue;
+                    }
+                    if (element[options[i]]) {
+                        element[options[i]] = t.value;
+                    } else {
+                        element.style[options[i]] = t.value;
                     }
                 }
-                var data = {};
-                data.nodes = nodes;
-                data.edges = edges;
-                localStorage.data = JSON.stringify(data);
             }
-            function loadAll() {
-                console.log(JSON.parse(localStorage.data))
-                var json = JSON.parse(localStorage.data);
-                var nodes = json.nodes, edges = json.edges;
-                var layout = document.getElementById("jsLayout");
-
-                for (var i = 0, len = nodes.length; i < len; i++) {
-                    var t = template(nodes[i]), id = nodes[i].id;
-                    layout.appendChild(t)
-                    setTimeout(_registerEvent({ id: id }), 1);
-                    addPoint(id, jspConfig.my_endpoint)
-                }
-                for (var i = 0, len = edges.length; i < len; i++) {
-                    instance.connect({
-                        uuids: edges[i].uuids
-                    });
+        }
+    }
+    function getProperty(element, options) {
+        if (options && options.length > 0) {
+            for (var i = 0, len = options.length; i < len; i++) {
+                var t = document.getElementsByName(options[i])[0];
+                if (t) {
+                    if (element[options[i]]) {
+                        t.value = element[options[i]];
+                    } else {
+                        var temp = getComputedStyle ? getComputedStyle(element, null) : element.currentStyle;
+                        if (options[i] == 'background-color') {
+                            var rgb = temp[options[i]];
+                            document.getElementById("colorShow").style.backgroundColor = rgb;
+                            continue;
+                        }
+                        t.value = temp[options[i]];
+                    }
                 }
 
             }
-        </script>
+
+        }
+    }
+    function getName(element) {
+        if (element && element.children.length > 0) {
+            var temp = element.children[0].children;
+            for (var i = 0, len = temp.length; i < len; i++) {
+                if (temp[i].nodeName == 'FONT') {
+                    document.getElementsByName("text")[0].value = temp[i].innerHTML;
+                }
+            }
+
+        }
+    }
+    function setName(element) {
+        if (element && element.children.length > 0) {
+            var temp = element.children[0].children;
+            for (var i = 0, len = temp.length; i < len; i++) {
+                if (temp[i].nodeName == 'FONT') {
+                    temp[i].innerHTML = document.getElementsByName("text")[0].value;
+                }
+            }
+        }
+    }
+    function changeColor() {
+        var p = document.getElementById("picker");
+        if (clickFlag) {
+            p.style.display = "none";
+            clickFlag = false;
+        } else {
+            p.style.display = "block";
+            clickFlag = true;
+        }
+
+    }
+    function initColorPicker() {
+        var d = document.getElementById("colorShow"),
+            l = document.getElementById("pickerLeft"),
+            r = document.getElementById("pickerRight");
+        if (!colorPick) {
+            colorPick = ColorPicker(r, l, function (hex) {
+                if (currentElement) {
+                    d.style.backgroundColor = hex;
+                    currentElement.style.backgroundColor = hex;
+                }
+            })
+        }
+    }
+    function saveAll() {
+        var eles = document.querySelectorAll(".monitorObj")
+        for (var i = 0, len = eles.length; i < len; i++) {
+            var e = eles[i], node = {
+                style: {}
+            };
+            node.id = e.id;
+            node.icon = e.children[0].children[0].className;
+            node.text = e.children[0].children[1].innerHTML;
+            node.type = e.children[0].children[0].className.split(" ")[2];
+            node.style.height = e.offsetHeight;
+            node.style.width = e.offsetWidth;
+            node.style.left = e.style.left;
+            node.style.top = e.style.top;
+            node.style.backgroundColor = e.style.backgroundColor;
+            nodes.push(node);
+        }
+        var conns = instance.getAllConnections();
+        if (conns && conns.length > 0) {
+            for (var i = 0, len = conns.length; i < len; i++) {
+                var con = conns[i], c = {};
+                c.uuids = [con.endpoints[0].getUuid(), con.endpoints[1].getUuid()];
+                edges.push(c);
+            }
+        }
+        var data = {};
+        data.nodes = nodes;
+        data.edges = edges;
+        localStorage.data = JSON.stringify(data);
+    }
+    function loadAll() {
+        var json = JSON.parse(localStorage.data);
+        var nodes = json.nodes, edges = json.edges;
+        var layout = document.getElementById("jsLayout");
+        for (var i = 0, len = nodes.length; i < len; i++) {
+            var t = template(nodes[i]), id = nodes[i].id;
+            addData(t);
+            layout.appendChild(t)
+            setTimeout(_registerEvent({ id: id }), 1);
+            addPoint(id, jspConfig.my_endpoint)
+        }
+        for (var i = 0, len = edges.length; i < len; i++) {
+            instance.connect({
+                uuids: edges[i].uuids
+            });
+        }
+    }
+    function getInfomation(ele) {
+        var type = $(ele).attr("id").split("_")[0];
+        $(ele).popover({
+            html: true,
+            trigger: 'manual',
+            container: 'body',
+            title: '详情',
+            content: $("#" + type + "").html()
+        }).hover(function () {
+            $(".popover").popover("hide");
+            $(this).popover("show");
+        }, function () {
+            $(this).popover("hide")
+        });
+    }
+    function addData(element) {
+        if (!element)
+            return;
+        var dataLayer = element.children[1];
+        console.log(dataLayer);
+
+    }
+</script>
