@@ -8,6 +8,11 @@
 <script src="~/lib/jquery/dist/jquery.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
 <style>
+    * {
+        padding: 0;
+        margin: 0;
+    }
+
     #FlowDesign, #FlowDesign > div {
         height: 90%;
         min-height: 650px;
@@ -21,7 +26,6 @@
         position: absolute;
         top: 0;
         left: 0;
-        display: flex;
         justify-content: center;
         align-items: center;
         background-color: #ff6a00;
@@ -73,7 +77,11 @@
     .data {
         width: 100%;
         min-height: 1px;
-        display: block;
+        height: 20px;
+    }
+
+    .datalist {
+        list-style: none;
     }
 </style>
 <div id="FlowDesign" class="row">
@@ -108,9 +116,9 @@
             <li class="active" id="nav-style">
                 <a href="#" onclick="toggleShow('style')">样式</a>
             </li>
-            <li class="" id="nav-events">
-                <a href="#" onclick="toggleShow('events')">属性</a>
-            </li>
+            @*<li class="" id="nav-events">
+                    <a href="#" onclick="toggleShow('events')">属性</a>
+                </li>*@
         </ul>
         <div id="tabs" class="tab-content body-content" style="padding-top:10px;">
             <div class="tab-pane active" id="tab-style">
@@ -139,10 +147,20 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group form-group-sm">
+                    @*<div class="form-group form-group-sm">
                         <label for="inputPassword" class="col-sm-3 control-label">显示名称:</label>
                         <div class="col-sm-9">
                             <input type="text" class="form-control" name="text">
+                        </div>
+                    </div>*@
+                    <div class="form-group form-group-sm">
+                        <label for="inputPassword" class="col-sm-3 control-label">设备:</label>
+                        <div class="col-sm-9">
+                            <select class="form-control" name="device">
+                                <option value="0">请选择设备</option>
+                                <option value="10101">设备一</option>
+                                <option value="10102">设备二</option>
+                            </select>
                         </div>
                     </div>
                     <div class="form-group form-group-sm">
@@ -153,9 +171,9 @@
             <div class="tab-pane" id="tab-events">
                 <div class="form-horizontal">
                     <div class="form-group form-group-sm">
-                        <label class="col-sm-3 control-label">事件1:</label>
+                        <label class="col-sm-3 control-label">设备:</label>
                         <div class="col-sm-9">
-                            <input type="text" class="form-control" name="events1">
+                            <input type="text" class="form-control" name="meter">
                         </div>
                     </div>
                     <div class="form-group form-group-sm">
@@ -169,32 +187,52 @@
         </div>
     </div>
 </div>
-<div id="content" style="display:none;">
+<div id="content" style="display:block;">
     <div id="water">
-        <div class="col-sm-12" style="width:150px;height:200px;">
-            详情
+        <div style="width:150px;height:220px;">
+            <ul class="datalist">
+                <li>瞬时流量：{{:instanceFlow}}</li>
+                <li>表码：10101293</li>
+                <li>设备状态：s</li>
+                <li>4月13日 10:56:21</li>
+            </ul>
         </div>
     </div>
     <div id="gas">
-        <div class="col-sm-12" style="width:150px;height:200px;">
-            详情
+        <div style="width:150px;height:200px;">
+            <ul class="datalist">
+                <li>瞬时流量：123</li>
+                <li>表码：10101293</li>
+                <li>设备状态：s</li>
+                <li>4月13日 10:56:21</li>
+            </ul>
         </div>
     </div>
     <div id="electric">
-        <div class="col-sm-12" style="width:150px;height:200px;">
-            {:type}
-            {:type}
-            {:type}
-            {:type}
+        <div style="width:150px;height:200px;text-align:left;padding-left:0;">
+            <ul class="datalist" style="margin-left:0;">
+                <li>正向有功：123</li>
+                <li>正向有功：123</li>
+                <li>正向有功：123</li>
+                <li>正向有功：123</li>
+                <li>正向有功：123</li>
+                <li>正向有功：123</li>
+                <li>表码：10101293</li>
+                <li>设备状态：s</li>
+                <li>4月13日 10:56:21</li>
+            </ul>
         </div>
     </div>
     <div id="concentrator">
-        <div class="col-sm-12" style="width:150px;height:200px;">
-            详情
+        <div style="width:150px;height:200px;text-align:left;">
+            <ul class="datalist">
+                <li>设备状态：s</li>
+                <li>4月13日 10:56:21</li>
+            </ul>
         </div>
     </div>
     <div class="others">
-        <div class="col-sm-12" style="width:150px;height:200px;">
+        <div style="width:150px;height:200px;">
             详情
         </div>
     </div>
@@ -266,9 +304,7 @@
             instance.bind("connection", function (connInfo, originalEvent) {
                 jspConfig.init(connInfo.connection);
             });
-            //
-            // listen for clicks on connections, and offer to delete connections on click.
-            //
+
             instance.bind("click", function (conn, originalEvent) {
                 // if (confirm("Delete connection from " + conn.sourceId + " to " + conn.targetId + "?"))
                 instance.deleteConnection(conn);
@@ -280,7 +316,6 @@
 
                 }
             });
-
             function _createElements(startPoint, types) {
                 var now = new Date();
                 var id = types.type + "_" + now.getMinutes() + now.getMilliseconds();
@@ -340,7 +375,8 @@
         var div1Config = {
             id: node.id,
             className: "dragPoint monitorObj",
-            style: node.style
+            style: node.style,
+            dataset: node.dataset
         };
         var div1 = createElement("div", div1Config);
         var div2 = createElement("div", { className: "data" });
@@ -408,7 +444,8 @@
     }
     function saveSet() {
         setProperty(currentElement, ["offsetHeight", "offsetWidth"]);
-        setName(currentElement);
+        connectDevices(currentElement);
+        
     }
     function setProperty(element, options) {
         if (options && options.length > 0) {
@@ -455,22 +492,31 @@
         }
     }
     function getName(element) {
-        if (element && element.children.length > 0) {
-            var temp = element.children[0].children;
-            for (var i = 0, len = temp.length; i < len; i++) {
-                if (temp[i].nodeName == 'FONT') {
-                    document.getElementsByName("text")[0].value = temp[i].innerHTML;
-                }
-            }
+        //if (element && element.children.length > 0) {
+        //    var temp = element.children[0].children;
+        //    for (var i = 0, len = temp.length; i < len; i++) {
+        //        if (temp[i].nodeName == 'FONT') {
+        //            //document.getElementsByName("text")[0].value = temp[i].innerHTML;
+        //        }
+        //    }
 
+        //}
+        if (element) {
+            var deviceId = element.dataset.device;
+            if (deviceId) {
+                document.getElementsByName("device")[0].value = deviceId;
+            }
+           
         }
     }
-    function setName(element) {
+
+    function setName(element,name) {
         if (element && element.children.length > 0) {
             var temp = element.children[0].children;
             for (var i = 0, len = temp.length; i < len; i++) {
                 if (temp[i].nodeName == 'FONT') {
-                    temp[i].innerHTML = document.getElementsByName("text")[0].value;
+
+                    temp[i].innerHTML = name;
                 }
             }
         }
@@ -503,17 +549,23 @@
         var eles = document.querySelectorAll(".monitorObj")
         for (var i = 0, len = eles.length; i < len; i++) {
             var e = eles[i], node = {
-                style: {}
+                style: {},
+                dataset: {}
             };
             node.id = e.id;
             node.icon = e.children[0].children[0].className;
             node.text = e.children[0].children[1].innerHTML;
-            node.type = e.children[0].children[0].className.split(" ")[2];
+            node.type = getType(e);
             node.style.height = e.offsetHeight;
             node.style.width = e.offsetWidth;
             node.style.left = e.style.left;
             node.style.top = e.style.top;
             node.style.backgroundColor = e.style.backgroundColor;
+            console.log(e);
+            if (e.dataset) {
+                node.dataset.device = e.dataset.device ||  '';
+            }
+           
             nodes.push(node);
         }
         var conns = instance.getAllConnections();
@@ -564,8 +616,43 @@
     function addData(element) {
         if (!element)
             return;
+        console.log(element)
         var dataLayer = element.children[1];
-        console.log(dataLayer);
+        var type = getType(element);
+        switch (type) {
+            case 'electric':
+                dataLayer.innerHTML = "<div>electric</div>";
+                break;
+            case 'water':
+                dataLayer.innerHTML = "<div>water</div>";
+                break;
+            case 'gas':
+                dataLayer.innerHTML = "<div>gas</div>";
+                break;
+            case 'concentrator':
+                dataLayer.innerHTML = "<div>concentrator</div>";
+                break;
+            case 'others':
+                dataLayer.innerHTML = "<div>others</div>";
+                break;
+            default:
+        }
+    }
+    function getType(element) {
+        if (element && element.children && element.children[0].children)
+            return element.children[0].children[0].className.split(" ")[2];
+        return "other";
+    }
+    function connectDevices(element) {
+        var device = document.getElementsByName("device")[0];
+        var name = "未知设备";
+        if (element && device) {
+            var index = device.selectedIndex;
+
+            element.dataset.device = device.options[index].value;
+            name = device.options[index].text;
+            setName(element, name);
+        }
 
     }
 </script>
